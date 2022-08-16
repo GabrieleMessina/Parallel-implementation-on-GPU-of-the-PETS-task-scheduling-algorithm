@@ -1,0 +1,78 @@
+\documentclass[12pt,oneside,a4paper,PisaPhdThesis]{PhdThesis}
+\usepackage[centertags]{amsmath}
+\usepackage[italian]{babel}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{rawfonts}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{xthesis} 
+\usepackage{xtocinc}                    
+
+\newlength{\defbaselineskip}
+\setlength{\defbaselineskip}{\baselineskip}
+\newcommand{\setlinespacing}[1]%
+           {\setlength{\baselineskip}{#1 \defbaselineskip}}
+\newcommand{\doublespacing}{\setlength{\baselineskip} {2.0 \defbaselineskip}}
+\newcommand{\singlespacing}{\setlength{\baselineskip}{\defbaselineskip}}
+\newcommand{\mycenterline}[1]{\vspace{.1cm}\newline\vspace{.1cm}\centerline{#1}}
+
+
+\begin{document}
+\selectlanguage{italian}
+
+
+% Le segueti informazioni devono essere modificate dallo studente
+\title{Titolo della Tesi di Laurea\\
+\begin{large}Qui \`e Possibile Inserire un Sottotitolo\end{large} }
+\author{Nome Cognome}
+\date{Anno Accademico 2012/13}
+
+
+\chaptertitlestyle{serifbig}
+\pagestyle{serif}
+\maketitle
+
+\begin{frontmatter}
+
+%  inserire di sequito la dedica, altrimenti commentare tutte le righe inserendo un simbolo davanti a ciascuna riga %
+\begin{dedication}
+    in questo punto del testo\\
+    \`e possibile inserire una dedica.
+\end{dedication}
+
+\setlinespacing{1.4}
+\pagenumbering{roman}
+
+
+% questo comando inserisce l'indice dei capitoli
+\tableofcontents
+
+\pagenumbering{arabic} \setcounter{page}{1}
+% il file introduzione.tex contiene l'abstract in italiano e la sua traduzione nelle due lingue scelte
+\include{introduzione}
+\end{frontmatter}
+
+
+\setlinespacing{1.4}
+% I seguenti file rappresentano i capitoli della tesi.
+% Inserire o cancellare le righe per aggiungere o eliminare dei capitoli alla tesi.
+\include{capitolo1}
+\include{capitolo2}
+\include{capitolo3}
+%\include{capitolo4}
+%\include{capitolo5}
+
+
+\begin{frontmatter}
+\pagenumbering{arabic} 
+\setcounter{page}{52}
+\include{conclusioni}
+\include{bibliografia}
+\end{frontmatter}
+\end{document}

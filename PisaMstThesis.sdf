@@ -1,0 +1,161 @@
+%%
+%% This is file `PisaMstThesis.sdf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% PhdThesis.dtx  (with options: `sdf,Pisa,Mst')
+%% 
+%% Copyright (C) 1995-2004 Marco Comini <comini@dimi.uniud.it>.
+%% 
+%% This class is the Phd Thesis format of the Computer Science Deartment of
+%% the Pisa and Udine Universities -- Italy.
+%% 
+%% This class is distributed in the hope that it will be useful, but WITHOUT
+%% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+%% FITNESS FOR A PARTICULAR PURPOSE.
+%% 
+%% Direct use of code from this class in another class which is either sold
+%% for profit, or not made freely available, is explicitly forbidden by the
+%% author.
+%% 
+\typeout{Class PhdThesis: PisaMstThesis.sdf 2004/02/16.}
+%%% Defines page shape
+\ifcase\@ptsize% mods for 10 pt
+\ClassWarningNoLine{PhdThesis}
+{You should use 11pt option instead of 10pt}
+\setlength\textheight{53\baselineskip}
+\or% mods for 11 pt
+\textheight 46\baselineskip
+\or% mods for 12 pt
+\ClassWarningNoLine{PhdThesis}
+{You should use 11pt option instead of 12pt}
+\setlength\textheight{42\baselineskip}
+\fi
+\advance\textheight by \topskip
+\setlength\headsep{10mm}
+\setlength\topmargin{3mm}
+\setlength\evensidemargin{5mm}
+\setlength\oddsidemargin{15mm}
+\setlength\textwidth{140mm}
+\setlength\parskip {0.2em plus 1pt minus 1pt}
+\AtBeginDocument{
+\setlength\baselineskip {1.3125\baselineskip}
+}
+%%% Provides strings required by maketitlepage (and patched maketitle)
+\def\@phd@address{%
+Universit\`a degli Studi di Pisa\\
+Via Buonarroti, 2\\
+56??? Pisa\\
+Italia
+}
+\gdef\@phd@university{%
+Universit\`a degli Studi di Pisa\vskip 0.75em plus 0.25em minus 0.25em
+{\large%
+Facolt\`a di Scienze Matematiche Fisiche e Naturali\\
+Corso di Laurea in Scienze dell'Informazione}
+}
+%%% Redefines maketitle
+\renewcommand*{\maketitle}{
+\begin{titlepage}%
+\let\footnotesize\small
+\let\footnoterule\relax
+\null%\vfil%
+\vskip -1cm
+\begin{center}%
+\textsc{\@phd@university}\par
+\vskip 4em plus .25em minus .25em
+{\large\textsc{\thesisname\ifx\@phd@number\@empty\else: \@phd@number\fi}\par}
+\vskip 4em
+{\LARGE\bfseries\@title\par}\vskip2em%
+\begin{minipage}[t]{0.45\textwidth}
+\begin{center}
+{\large\begin{tabular}[t]{c}%
+\textsc{\candidatename}\\[1ex]
+\@author
+\end{tabular}}
+\\[5em]\mbox{}
+\end{center}
+\end{minipage}
+%\vskip2em plus.25em minus.25em
+\vskip1em\vfill
+% supervisors
+\def\and{\end{tabular}\\[5em]\mbox{}\end{center}\end{minipage}\hfill
+\begin{minipage}[t]{0.45\textwidth}\begin{center}
+\begin{tabular}[t]{c}\textsc{\supervisorname}\\[1ex]%
+}
+\ifx\@phd@supervisor\@empty\else
+\begin{minipage}[t]{0.45\textwidth}
+\begin{center}
+\begin{tabular}[t]{c}%
+\textsc{\supervisorname}\\[1ex]
+\@phd@supervisor
+\end{tabular}\\[5em]\mbox{}
+\end{center}
+\end{minipage}
+\fi%
+% referees
+\def\and{\end{tabular}\\[5em]\mbox{}\end{center}\end{minipage}\hfill
+\begin{minipage}[t]{0.45\textwidth}\begin{center}
+\begin{tabular}[t]{c}\textsc{\refereename}\\[1ex]%
+}
+\ifx\@phd@referee\@empty\else
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\begin{center}
+\begin{tabular}[t]{c}%
+\textsc{\refereename}\\[1ex]
+\@phd@referee
+\end{tabular}\\[5em]\mbox{}
+\end{center}
+\end{minipage}
+\fi%
+\par
+% chair
+\def\and{\end{tabular}\\[5em]\mbox{}\end{center}\end{minipage}\hfill
+\begin{minipage}[t]{0.45\textwidth}\begin{center}
+\begin{tabular}[t]{c}\textsc{\chairname}\\[1ex]%
+}
+\ifx\@phd@chair\@empty\else
+\begin{minipage}[t]{0.45\textwidth}
+\begin{center}
+\begin{tabular}[t]{c}%
+\textsc{\chairname}\\[1ex]
+\@phd@chair
+\end{tabular}\\[5em]\mbox{}
+\end{center}
+\end{minipage}
+\fi%
+\vskip1em\vfill
+{\large\ifx\undefined\datename\else\datename~\fi\@date\par}% Set date in \large size.
+\end{center}%\par
+\ifx\@thanks\@empty\else
+\par\vfil%
+\@thanks
+\fi%
+\ifx\@phd@address\@empty\else
+\par\vfil\begin{center}
+\@phd@address
+\end{center}
+\fi%
+\null
+\end{titlepage}%
+\thispagestyle{empty}
+\setcounter{footnote}{0}%
+\let\thanks\relax\let\maketitle\relax%
+}% end \maketitle
+%%% Adds captions used by maketitle
+\addto\phd@captions@italian{%
+\def\candidatename{Candidato}%
+\def\datename{Anno Accademico}%
+\def\thesisname{Tesi di Laurea}%
+}
+\addto\phd@captions@american{%
+\def\candidatename{Candidate}%
+\def\datename{Academic Year}%
+\def\thesisname{Master Thesis}%
+}
+\let\phd@captions@english\phd@captions@american
+\endinput
+%%
+%% End of file `PisaMstThesis.sdf'.
