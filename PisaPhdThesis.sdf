@@ -51,8 +51,8 @@ Italia
 %University of Catania
 \vskip 0.75em plus 0.25em minus 0.25em
 {\Large Universit\`{a} degli Studi di Catania}\\ 
-{\large Dipartimento di Scienze Umanistiche}\\ 
-{Corso di Laurea in Scienze per la Comunicazione Internazionale}
+{\large Dipartimento di Matematica e Informatica}\\ 
+{Corso di Laurea in Informatica}
 
 }
 %%% Redefines maketitle
@@ -102,7 +102,7 @@ Italia
 %\begin{minipage}[t]{0.9\textwidth}
 \begin{tabular}[t]{ccc}
 \textsc{} & \hspace{8cm} &\textsc{Relatore}\\
- & \hspace{8cm} & Prof. Simone Faro\\
+ & \hspace{8cm} & Prof. Giuseppe Bilotta\\
 \end{tabular}
 %[5em]\mbox{}
 %\end{minipage}
