@@ -1,16 +1,64 @@
-\chapter{Titolo del Terzo Capitolo}
+\chapter{L'algoritmo PETS}
 \vspace{4cm}
+L'algoritmo Performance Effective Task Scheduling (PETS), presentato in [], è un'euristica che si propone di ottenere risultati migliori rispetto alle controparti già presenti in letteratura, vedi HEFT e CPOP, in termini di costo computazionale e ottimizzazione generale delle risorse.
+\\
+L'algoritmo è diviso in tre fasi:
+\begin{itemize}
+	\item Ordinamento sulla base del livello
+	\item Calcolo delle priorità
+	\item Selezione del processore 
+\end{itemize}
+
+\newpage
+
+\section{Ordinamento sulla base del livello}
+In questa fase si attraversa la DAG attraverso una ricerca in ampiezza (BFS), partendo quindi dal task con tempo di inizio minore (o entry-task), con l'obiettivo di raggruppare nello stesso livello task che fra loro sono indipendenti e che quindi possono essere eseguiti in parallelo.
+In particolare, per ogni task, il livello ad esso associato è dato dal livello massimo dei suoi predecessori (nodi della DAG da cui il task dipende) incrementato di uno. I task che non hanno predecessori sono detti entry-task o entrypoint e sono assegnati al livello 0.
 
 
-\section{Prima sezione}
-Testo del paragrafo.
+\section{Calcolo della priorità}
+Per ogni task si procede quindi a calcolare la sua priorità o il suo grado in modo da determinare all'interno di ogni livello l'ordine ottimale di esecuzione dei task, l'ordine cioè che fornisce uno scheduling finale migliore.
+Per fare questo si definiscono tre proprietà:
+\begin{itemize}
+	\item Average Computation Cost (ACC): costo medio di computazione del task sui processori.
+	\item Data Transfer Cost (DTC): quantità di dati da trasferire dal task a tutti i suoi successori.
+	\item Rank of Predecessor Task (RPT): il grado più alto fra i predecessori del task.
+\end{itemize}
 
-\section{Seconda sezione}
-Testo del paragrafo.
+Il grado è calcolato attraverso la seguente equazione:
+\begin{equation}\label{Grado}
+	rank(v\ped{i}) = round(ACC(v\ped{i}) + DTC(v\ped{i}) + RPT(v\ped{i}))
+\end{equation}
 
-\section{Terza sezione}
-Testo del paragrafo.
+Quindi, per ogni livello, i task con grado più alto ricevono priorità maggiore.
 
 
 
+\section{Selezione del processore}
+A questo punto si scandiscono i task sulla base della loro priorità e, ogni task, viene associato al processore migliore, cioè quello che fornisce $EFT$ minore. 
+Dove $EFT$ è definita come segue:
+\begin{displaymath}
+	avail[j] := \text{prossimo istante in cui il processore $j$ è libero}
+\end{displaymath}
+\begin{displaymath}
+	C\ped{t,i} := \text{tempo necessario al trasferimento dei dati tra i task $t$ e $i$} 
+\end{displaymath}
+\begin{displaymath}
+	W\ped{i,j} := \text{costo computazionale del processo $i$ sul processore $j$} 
+\end{displaymath}
+\begin{equation}\label{EST}
+	EST(v\ped{i},p\ped{j}) = max(avail[j], max(AFT(v\ped{t}) + C\ped{t,i} : V\ped{t} \in pred(v\ped{i})))
+\end{equation}
+\begin{equation}\label{EFT}
+	EFT(v\ped{i},p\ped{j}) = W\ped{i,j} + EST(v\ped{i},p\ped{j})
+\end{equation}
 
+
+\section{Complessità computazionale}
+La prima fase dell'algoritmo ha complessità $O(e)$ se si implementa la DAG attraverso liste di adiacenza.
+\\
+L'ordinamento dei task ha complessità $O(\log(v))$ se si implementa una coda di priorità attraverso un heap binario.
+\\
+Infine per ogni task in coda si calcola il costo su ogni processore, quindi la complessità computazionale dell'algoritmo PETS è \( O(e)(p + \log{v}) \). \textcolor{red}{\( O(e)(p * \log{v}) \)?}
+\\
+Con $v$ numero di task, $e$ numero di archi e $p$ numero di processori.

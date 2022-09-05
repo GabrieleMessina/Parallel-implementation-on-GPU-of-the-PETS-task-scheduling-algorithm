@@ -1,24 +1,41 @@
-\chapter{Titolo del Secondo Capitolo}
+\chapter{Il framework OpenCL}
 \vspace{4cm}
+OpenCL è uno standard open per lo sviluppo di programmi multi piattaforma eseguiti in parallelo che implementa un linguaggio simile al C con il quale è possibile scrivere delle funzioni, dette kernel, che potranno essere compilate a run-time ed eseguite in parallelo sull'hardware desiderato (device).
 
+La compilazione a run-time è necessaria per garantire la portabilità del codice su device diversi e avviene sulla piattaforma, detta host, che inizia l'esecuzione del programma attraverso le API (Application Programming Interface) messe a disposizione da OpenCL stesso.
+In fase di compilazione il codice OpenCL viene quindi tradotto in istruzioni native del device di destinazione attraverso un compilatore, rilasciato dalla casa di produzione dell'hardware, in grado di generare codice performante sul device a partire dal kernel fornito.
 
-\section{Note bibliografiche}
-\`E possibile inserire delle note bibliografiche\footnote{Questa \`e una nota bibliografica inserita all'interno del testo.} come da esempio.
+Il fatto che OpenCL fornisca API comuni per tutte le piattaforme impedisce di ottimizzare il codice a basso livello, ma è un trade-off necessario per ottenere un'applicazione multi piattaforma.
 
-Le note bibliografiche dovranno essere inserite allo stesso modo\footnote{Simone Faro, Thierry Lecroq: The exact online string matching problem: A review of the most recent results. ACM Comput. Surv. 45(2): 13 (2013)} come mostra il seguente esempio. 
-Le note\footnote{Domenico Cantone, Simone Faro, Emanuele Giaquinta: A compact representation of nondeterministic (suffix) automata for the bit-parallel approach. Inf. Comput. 213: 3-12 (2012)} dovranno contenere tutte le informazioni relative ll'articolo citato. 
+\section{Esecuzione di un programma OpenCL}
+OpenCL fa uso di una coda dei comandi che permette all'host di inviare kernel e relativi dati al device per essere eseguiti.
 
-Tutte le citazioni presenti all'interno delle note del testo dovranno essere riportate all'intrno della sezione bibliografisi.
-\section{Ulteriore sezione del capitolo}
-Testo del paragrafo.
+Dopo essere stati aggiunti alla coda, i kernel vengono assegnati alle varie compute unit del device, unità di elaborazione che eseguono lo stesso codice in parallelo.
+ 
+La separazione e l'implementazione fisica dei compute unit dipendono dal device scelto e, anche in questo caso, OpenCL si limita a fornire delle API comuni.
 
+In particolare, OpenCL, definisce un global work size e un local work size. \\
+Il global work size definisce il numero di istanze del kernel da eseguire, ogni istanza è detta work-item.
+Il local work size definisce invece quanti work-item raggruppare in un work-group. Ogni work-item dello stesso work-group verrà eseguito sulla stessa compute unit.
 
-\section{Come inserire del testo quotato}
+\section{Suddivisione della memoria in OpenCL}
+%OpenCL deve comunicare sia con la memoria host che con quella device.
+%L'astrazione fornita da OpenCL 
 
-Per inserire del testo quotato \`e possibile seguire il seguente esempio
+OpenCL ha bisogno di manipolare, oltre alla memoria host che viene gestita nel modo classico attraverso il linguaggio C o C++, anche la memoria device. 
+Per fare questo fornisce un'astrazione con tre classi di memoria:
 
-\begin{quote}
-\emph{Lorem ipusum}
-\end{quote}
+\begin{itemize}
+	\item Global memory
+	\item Local memory
+	\item Private memory
+\end{itemize}
 
+La global memory è accessibile a tutti i work-item di tutti i work-group ma ha un tempo di risposta più basso delle altre.
+La local memory è la memoria locale di un work-group ed è quindi accessibile solo a work-item dello stesso work-group.
+Infine la private memory è limitata al singolo work-item.
 
+Data la natura parallela dell'esecuzione, l'accesso alla memoria deve essere fatto con attenzione per evitare problemi di race condition o di inconsistenza dei dati.
+OpenCL fornisce quindi delle istruzioni, dette \textit{fence}, per la sincronizzazione dei work-item. Le \textit{fence} impediscono al work-item di proseguire alle istruzioni successive se prima tutti gli altri work-item del gruppo non sono arrivati alla stessa istruzione \textit{fence}.
+
+La sincronizzazione è, in via teorica, possibile anche tra work-item di diversi work-group, tuttavia OpenCL non garantisce che tutti i work-group siano in esecuzione nello stesso momento, e questo, in combinazione con le istruzioni \textit{fence}, potrebbe portare a dei deadlock.

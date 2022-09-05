@@ -1,831 +1,165 @@
-\chapter{Implementazione e sperimentazione del sistema di Luhn}
-\vspace{2cm}
-\begin{small}
-\hrule
-\vspace{0.2cm}
-\textit{
-In questa sezione vengono presentati e valutati alcuni risultati ottenuti dalla sperimentazione di due sistemi di automatic abstracting
-su alcuni testi in lingua inglese.
-Il primo sistema utilizzato per la sperimentazione \`{e} stato ottenuto attraverso un'implementazione del metodo di Luhn realizzata utilizzando il linguaggio di programmazione C. 
-Come secondo sistema \`{e} invece stato utilizzato il tool commerciale Brevity (una versione dimostrativa pu\`{o} essere testata sul sito \texttt{http://www.lextek.com/brevity}), in grado di generare accurati riassunti 
-e fornire un elenco di parole chiave legate ad un testo.
-I due sistemi sono stati messi a confronto sui due seguenti testi scritti in lingua inglese, tratti dall'enciclopedia libera Wikipedia:\\
-- Edgar Allan Poe (sito web \texttt{http://en.wikipedia.org/wiki/Edgar\_allan\_poe}).\\
-- Gaius Julius Caesar (sito web \texttt{http://en.wikipedia.org/wiki/Julius\_Caesar}).\\
-- Linux (sito web \texttt{http://en.wikipedia.org/wiki/Linux}).\\
-Per ciascuno dei testi sono stati messi a confronto i riassunti ottenuti in maniera automatica con un riassunto generato manualmente.
-Sono in seguito stati calcolati i valori di precision, recall e F-Score. Infine \`{e} anche stato calcolato il valore di similarit\`{a} legato ai due riassunti.
-}\\[0.2cm]
-\hrule
-\vspace{0.2cm}
-\end{small}
-\vfill
-\newpage
+\chapter{L'implementazione in OpenCL}
+\vspace{4cm}
 
 
-\section{Valutazione sul testo ``Edgar Allan Poe''}
-Il testo utilizzato per la presente valutazione contiene una breve descrizione della vita dell'autore americano Edgar Allan Poe.
-Il brano \`{e} scritto in lingua inglese e contiene 193 lemmi diversi, e 21 frasi.
-Di seguito viene presentato il brano integralmente. Le frasi del testo sono numerate in ordine crescente.\\[0.2cm]
+\section{Generatore dei task}
+Al fine di poter comparare i risultati ottenuti nel paper[jcssp] con i nostri, si è deciso di implementare un generatore di task con caratteristiche simili a quelle del paper, che fornisca in output una varietà di DAG su cui poter eseguire i test.
+\\
+Il generatore dipende da diversi parametri di input che sono:
+\begin{itemize}
+	\item{Number of tasks in the graph ($v$)}
+	\item{Out degree ($\beta$)}
+	\item{Shape parameter of a graph ($\alpha$)}
+	\item{Communication to Computation Ratio (CCR)}
+	\item{Range percentage of computation cost ($\eta$)}
+\end{itemize}
 
-\begin{small}
-\subsection*{Testo originale ``Edgar Allan Poe''}
-{$^{[0]}$}Edgar Allan Poe was an American author, poet, editor and literary critic, considered part of the American Romantic Movement. 
-{$^{[1]}$}Best known for his tales of mystery and the macabre, Poe was one of the earliest American practitioners of the short story and is considered the inventor of the detective-fiction genre. 
-{$^{[2]}$}He is further credited with contributing to the emerging genre of science fiction. 
-{$^{[3]}$}He was the first well-known American writer to try to earn a living through writing alone, resulting in a financially difficult life and career.
-{$^{[4]}$}He was born as Edgar Poe in Boston, Massachusetts. 
-{$^{[5]}$}He was orphaned young when his mother died shortly after his father abandoned the family. 
-{$^{[6]}$}Poe was taken in by John and Frances Allan, of Richmond, Virginia, but they never formally adopted him. 
-{$^{[7]}$}He attended the University of Virginia for one semester but left due to lack of money. 
-{$^{[8]}$}After enlisting in the Army and later failing as an officer's cadet at West Point, Poe parted ways with the Allans. 
-{$^{[9]}$}His publishing career began humbly, with an anonymous collection of poems, Tamerlane and Other Poems, credited only to a Bostonian.
-{$^{[10]}$}Poe switched his focus to prose and spent the next several years working for literary journals and periodicals, becoming known for his own style of literary criticism. 
-{$^{[11]}$}His work forced him to move between several cities, including Baltimore, Philadelphia, and New York City. 
-{$^{[12]}$}In Baltimore in 1835, he married Virginia Clemm, his 13-year-old cousin. 
-{$^{[13]}$}In January 1845 Poe published his poem "The Raven" to instant success. 
-{$^{[14]}$}His wife died of tuberculosis two years after its publication. 
-{$^{[15]}$}He began planning to produce his own journal, The Penn (later renamed The Stylus), though he died before it could be produced. 
-{$^{[16]}$}On October 7, 1849, at age 40, Poe died in Baltimore. 
-{$^{[17]}$}The cause of his death is unknown and has been variously attributed to alcohol, brain congestion, cholera, drugs, heart disease, rabies, suicide, tuberculosis, and other agents.
-{$^{[18]}$}Poe and his works influenced literature in the United States and around the world, as well as in specialized fields, such as cosmology and cryptography. 
-{$^{[19]}$}Poe and his work appear throughout popular culture in literature, music, films, and television. A number of his homes are dedicated museums today.
-\vfill
-\end{small}
+In particolare, l'altezza del grafo è generata randomicamente a partire da una distribuzione uniforme con valore medio pari a $\frac{\sqrt{v}}{\alpha}$, mentre l'ampiezza a partire da una distribuzione uniforme con valore medio pari a $\sqrt{v}\times\alpha$.
+In questo modo si può generare un grafo più o meno denso semplicemente modificando il parametro $\alpha$.
 
-\newpage
-Di seguito viene mostrata la tabella delle parole contenute all'interno del testo,
-ordinate in base al numero di occorrenze.
-Si noti che parole con il medesimo lemma vengono considerate identiche.
+%TODO: Aggiungere descrizione parametro beta
 
-\begin{center}
-\begin{scriptsize}
-\begin{tabular}{|ll|}
-\hline
-poe           & 10\\%	0.05
-was           & 6\\%	0.03
-literary      & 5\\%	0.03
-american      & 4\\%	0.02
-died          & 4\\%	0.02
-allan         & 3\\%0.02
-known         & 3\\%0.02
-is            & 3\\%0.02
-virginia      & 3\\%0.02
-attended      & 3\\%0.02
-publishing    & 3\\%0.02
-poems         & 3\\%0.02
-years         & 3\\%0.02
-working       & 3\\%0.02
-baltimore     & 3\\%0.02
-critic        & 2\\%0.01
-considered    & 2\\%0.01
-movement      & 2\\%0.01
-best          & 2\\%0.01
-short         & 2\\%0.01
-fiction       & 2\\%0.01
-genre         & 2\\%0.01
-credited      & 2\\%0.01
-well          & 2\\%0.01
-career        & 2\\%0.01
-boston        & 2\\%0.01
-semester      & 2\\%0.01
-later         & 2\\%0.01
-began         & 2\\%0.01
-journals      & 2\\%0.01
-own           & 2\\%0.01
-tuberculosis  & 2\\%0.01
-produce       & 2\\%0.01
-author        & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-poet          & 1\\%0.01
-editor        & 1\\%0.01
-part          & 1\\%0.01
-romantic      & 1\\%0.01
-tales         & 1\\%0.01
-mystery       & 1\\%0.01
-macabre       & 1\\%0.01
-earliest      & 1\\%0.01
-practitioners & 1\\%0.01
-story         & 1\\%0.01
-detective     & 1\\%0.01
-further       & 1\\%0.01
-contributing  & 1\\%0.01
-emerging      & 1\\%0.01
-science       & 1\\%0.01
-first         & 1\\%0.01
-writer        & 1\\%0.01
-try           & 1\\%0.01
-earn          & 1\\%0.01
-living        & 1\\%0.01
-writing       & 1\\%0.01
-alone         & 1\\%0.01
-resulting     & 1\\%0.01
-financially   & 1\\%0.01
-difficult     & 1\\%0.01
-life          & 1\\%0.01
-born          & 1\\%0.01
-massachusetts & 1\\%0.01
-orphaned      & 1\\%0.01
-young         & 1\\%0.01
-when          & 1\\%0.01
-mother        & 1\\%0.01
-father        & 1\\%0.01
-abandoned     & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-family        & 1\\%0.01
-taken         & 1\\%0.01
-john          & 1\\%0.01
-frances       & 1\\%0.01
-richmond      & 1\\%0.01
-never         & 1\\%0.01
-formally      & 1\\%0.01
-adopted       & 1\\%0.01
-university    & 1\\%0.01
-left          & 1\\%0.01
-due           & 1\\%0.01
-lack          & 1\\%0.01
-money         & 1\\%0.01
-enlisting     & 1\\%0.01
-army          & 1\\%0.01
-failing       & 1\\%0.01
-officer       & 1\\%0.01
-cadet         & 1\\%0.01
-west          & 1\\%0.01
-point         & 1\\%0.01
-parted        & 1\\%0.01
-ways          & 1\\%0.01
-humbly        & 1\\%0.01
-anonymous     & 1\\%0.01
-collection    & 1\\%0.01
-tamerlane     & 1\\%0.01
-only          & 1\\%0.01
-switched      & 1\\%0.01
-focus         & 1\\%0.01
-prose         & 1\\%0.01
-spent         & 1\\%0.01
-periodicals   & 1\\%0.01
-becoming      & 1\\%0.01
-style         & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-forced        & 1\\%0.01
-cities        & 1\\%0.01
-including     & 1\\%0.01
-philadelphia  & 1\\%0.01
-new           & 1\\%0.01
-york          & 1\\%0.01
-city          & 1\\%0.01
-married       & 1\\%0.01
-clemm         & 1\\%0.01
-old           & 1\\%0.01
-cousin        & 1\\%0.01
-january       & 1\\%0.01
-raven         & 1\\%0.01
-instant       & 1\\%0.01
-success       & 1\\%0.01
-wife          & 1\\%0.01
-two           & 1\\%0.01
-planning      & 1\\%0.01
-penn          & 1\\%0.01
-renamed       & 1\\%0.01
-stylus        & 1\\%0.01
-though        & 1\\%0.01
-could         & 1\\%0.01
-october       & 1\\%0.01
-age           & 1\\%0.01
-cause         & 1\\%0.01
-death         & 1\\%0.01
-unknown       & 1\\%0.01
-has           & 1\\%0.01
-been          & 1\\%0.01
-variously     & 1\\%0.01
-attributed    & 1\\%0.01
-alcohol       & 1\\%0.01
-brain         & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-congestion    & 1\\%0.01
-cholera       & 1\\%0.01
-drugs         & 1\\%0.01
-heart         & 1\\%0.01
-disease       & 1\\%0.01
-rabies        & 1\\%0.01
-suicide       & 1\\%0.01
-agents        & 1\\%0.01
-works         & 1\\%0.01
-influenced    & 1\\%0.01
-united        & 1\\%0.01
-states        & 1\\%0.01
-world         & 1\\%0.01
-specialized   & 1\\%0.01
-fields        & 1\\%0.01
-such          & 1\\%0.01
-cosmology     & 1\\%0.01
-cryptography  & 1\\%0.01
-appear        & 1\\%0.01
-popular       & 1\\%0.01
-culture       & 1\\%0.01
-music         & 1\\%0.01
-films         & 1\\%0.01
-television    & 1\\%0.01
-number        & 1\\%0.01
-homes         & 1\\%0.01
-are           & 1\\%0.01
-dedicated     & 1\\%0.01
-museums       & 1\\%0.01
-today         & 1\\%0.01
-&\\
-&\\
-&\\
-&\\
-\hline
-\end{tabular}
-\end{scriptsize}
-\end{center}
+Inoltre il parametro CCR indica quanto i task sono impattanti dal punto di vista computazionale rispetto alla mole di dati che analizzano, se CCR è molto basso il costo computazionale è più alto rispetto alla quantità di dati trasmessi ai task successori pertanto l'applicazione può essere considerata ad alta intensità di calcolo, viceversa se CCR è alto l'applicazione trasmette molti dati tra i task ma non è molto pesante dal punto di vista computazionale.
 
-\newpage
-\begin{small}
-\subsection*{Riassunto manuale del testo}
-{$^{[0]}$}Edgar Allan Poe was an American author, poet, editor and literary critic, considered part of the American Romantic Movement. 
-{$^{[1]}$}Best known for his tales of mystery and the macabre, Poe was one of the earliest American practitioners of the short story and is considered the inventor of the detective-fiction genre. 
-%{$^{[2]}$}He is further credited with contributing to the emerging genre of science fiction. 
-{$^{[3]}$}He was the first well-known American writer to try to earn a living through writing alone, resulting in a financially difficult life and career.
-%{$^{[4]}$}He was born as Edgar Poe in Boston, Massachusetts. 
-{$^{[5]}$}He was orphaned young when his mother died shortly after his father abandoned the family. 
-{$^{[6]}$}Poe was taken in by John and Frances Allan, of Richmond, Virginia, but they never formally adopted him. 
-%{$^{[7]}$}He attended the University of Virginia for one semester but left due to lack of money. 
-%{$^{[8]}$}After enlisting in the Army and later failing as an officer's cadet at West Point, Poe parted ways with the Allans. 
-{$^{[9]}$}His publishing career began humbly, with an anonymous collection of poems, Tamerlane and Other Poems, credited only to a Bostonian.
-%{$^{[10]}$}Poe switched his focus to prose and spent the next several years working for literary journals and periodicals, becoming known for his own style of literary criticism. 
-%{$^{[11]}$}His work forced him to move between several cities, including Baltimore, Philadelphia, and New York City. 
-%{$^{[12]}$}In Baltimore in 1835, he married Virginia Clemm, his 13-year-old cousin. 
-%{$^{[13]}$}In January 1845 Poe published his poem "The Raven" to instant success. 
-%{$^{[14]}$}His wife died of tuberculosis two years after its publication. 
-%{$^{[15]}$}He began planning to produce his own journal, The Penn (later renamed The Stylus), though he died before it could be produced. 
-{$^{[16]}$}On October 7, 1849, at age 40, Poe died in Baltimore. 
-%{$^{[17]}$}The cause of his death is unknown and has been variously attributed to alcohol, brain congestion, cholera, drugs, heart disease, rabies, suicide, tuberculosis, and other agents.
-{$^{[18]}$}Poe and his works influenced literature in the United States and around the world, as well as in specialized fields, such as cosmology and cryptography. 
-%{$^{[19]}$}Poe and his work appear throughout popular culture in literature, music, films, and television. A number of his homes are dedicated museums today.
-\vfill
-\end{small}
+Infine il parametro $\eta$ indica il grado di eterogeneità del sistema, cioè se ci sono differenze significative tra le prestazioni dei processori, se $\eta$ è alto i costi dei task sui processori variano molto di processore in processore, viceversa se $\eta$ basso tutti i processori completeranno lo stesso task in tempi uguali. 
+A partire da questo, il costo medio della computazione $W\ped{i}$ per ogni task è stato scelto casualmente da una distribuzione uniforme con estremi $0$ e $2 \times \text{Wdag}$, dove Wdag è una costante del generatore che indica il costo medio di computazione dei task del grafo, e il costo computazionale $W\ped{i,j}$ di ogni task $v\ped{i}$ su ogni processore $p\ped{j}$ è scelto randomicamente dall'intervallo $[W\ped{i}\times (1-\frac{\eta}{2}), W\ped{i}\times (1+\frac{\eta}{2})]$.
 
-\subsection*{Riassunto automatico del testo (metodo di Luhn)}
-\begin{small}
-{$^{[0]}$}Edgar Allan Poe was an American author, poet, editor and literary critic, considered part of the American Romantic Movement.
-{$^{[1]}$}Best known for his tales of mystery and the macabre, Poe was one of the earliest American practitioners of the short story and is considered the inventor of the detective-fiction genre.
-{$^{[3]}$}He was the first well-known American writer to try to earn a living through writing alone, resulting in a financially difficult life and career.
-{$^{[9]}$}His publishing career began humbly, with an anonymous collection of poems, Tamerlane and Other Poems, credited only to a Bostonian.
-{$^{[12]}$}In Baltimore in 1835, he married Virginia Clemm, his 13-year-old cousin.
-{$^{[15]}$}He began planning to produce his own journal, The Penn (later renamed The Stylus), though he died before it could be produced.
-{$^{[16]}$}On October 7, 1849, at age 40, Poe died in Baltimore.
-\vfill
-\end{small}
+\section{Fasi dell'algoritmo}
+Al fine di implementare attraverso OpenCL una versione parallelizzata dell'algoritmo PETS, si è suddiviso l'algoritmo in 4 fasi:
+
+\begin{enumerate}
+	\item Ricerca degli entrypoint
+	\item Calcolo dei livelli e dei ranghi
+	\item Ordinamento dei task
+	\item Selezione del processore
+\end{enumerate}
 
 
-\subsection*{Riassunto automatico del testo (tool Brevity)}
-\begin{small}
-{$^{[0]}$}Edgar Allan Poe was an American author, poet, editor and literary critic, considered part of the American Romantic Movement. 
-{$^{[1]}$}Best known for his tales of mystery and the macabre, Poe was one of the earliest American practitioners of the short story and is considered the inventor of the detective-fiction genre. 
-{$^{[2]}$}He is further credited with contributing to the emerging genre of science fiction. 
-{$^{[3]}$}He was the first well-known American writer to try to earn a living through writing alone, resulting in a financially difficult life and career. 
-{$^{[4]}$}He was born as Edgar Poe in Boston, Massachusetts. 
-{$^{[5]}$}He was orphaned young when his mother died shortly after his father abandoned the family. 
-{$^{[6]}$}Poe was taken in by John and Frances Allan, of Richmond, Virginia, but they never formally adopted him. 
-{$^{[7]}$}He attended the University of Virginia for one semester but left due to lack of money.       
-\vfill
-\end{small}
+Per ogni fase è stato implementato un kernel OpenCL da eseguire in parallelo su GPU.
 
-\subsection*{Valutazione}
-In questa sezione effettueremo la valutazione dei due riassunti automatici ottenuti con il metodo di Luhn e con Brevity.
-La valutazione verr\`{a} effettuata sulla base dei valori di precision, recall ed F-Score. Inoltre verr\`{a} calcolato anche il grado di similarit\`{a} dei due riassunti automatici con il riassunto generato maualmente.
+\subsection{Ricerca degli entrypoint}
+\begin{lstlisting}[language=C++, caption={Find entrypoints kernel II},captionpos=b]
+	kernel void entry_discover_rectangular(const int n_nodes, global edge_t* restrict edges, volatile global int* n_entries, global int* entries)
+	{
+		int current_node_index = get_global_id(0);
+		if (current_node_index >= n_nodes) return;
+		
+		if (edges[matrixToArrayIndex] <= -1)
+		entries[i] = 1;
+	}
+\end{lstlisting}
 
-Per quanto riguarda i valori di precision si ottiene $P(\textsf{luhn})= 5 / 8 = 0.625$ e $P(\textsf{brevity})= 5 / 8 = 0.625$. Essi quindi risultano essere
-identici per entrambi i riassunti automatici.
+\subsection{Calcolo dei livelli e dei ranghi}
+\begin{lstlisting}[language=C++, caption={Compute metrics kernel II},captionpos=b]
+	kernel void compute_metrics_rectangular(global int* restrict nodes, global int* queue_, global int* next_queue_, const int n_nodes, global edge_t* restrict edges, global edge_t* restrict edges_reverse, volatile global int2* metriche, const int max_adj_dept)
+	{
+		int current_node_index = get_global_id(0);
+		if(current_node_index >= n_nodes) return;
+		
+		[...] //omissis of various security checks
+		
+		for (int j = 0; j < max_adj_dept; j++) {
+			int parentAdjIndex = j;
+			matrixToArrayIndex = matrix_to_array_indexes(parentAdjIndex, current_node_index, n_nodes);
+			int edge_weight = 1;
+			int parent_index = edges[matrixToArrayIndex];
+			if (parent_index >= 0){
+				int weight_with_this_parent = edge_weight + metriche[parent_index].x + nodes[current_node_index];
+				int level_with_this_parent = metriche[parent_index].y + 1;
+				metrics_with_this_parent = (int2)(weight_with_this_parent, level_with_this_parent);
+				if (gt(metrics_with_this_parent, metriche[current_node_index]))
+				metriche[current_node_index] = metrics_with_this_parent;
+			}
+			int child_index = edges_reverse[matrixToArrayIndex];
+			if (child_index >= 0)
+			atomic_inc(&next_queue_[child_index]);
+		}
+	}
+\end{lstlisting}
 
-Per quanto riguarda il valore di recall si ottiene $R(\textsf{luhn})= 5 / 7 = 0.714$ e $R(\textsf{brevity})= 5 / 8 = 0.625$. Il metodo proposto da Luhn risulta quindi avere una valutazione leggermente migliore.
+\subsection{Ordinamento dei task}
+\begin{lstlisting}[language=C++, caption={MergeSort kernel for metrics couple array, source: \url{https://github.com/Gram21/GPUSorting}},captionpos=b]
+	__kernel void merge_sort(const __global int2* inArray, __global int2* outArray, const uint stride, const uint size)
+	{
+		const uint baseIndex = get_global_id(0) * stride;
+		if ((baseIndex + stride) > size) return;
+		const char dir = 1;
+		uint middle = baseIndex + (stride >> 1);
+		uint left = baseIndex;
+		uint right = middle;
+		bool selectLeft;
+		
+		for (uint i = baseIndex; i < (baseIndex + stride); i++) {
+			selectLeft = (left < middle && (right == (baseIndex + stride) || lte(inArray[left], inArray[right]))) == dir;
+			
+			outArray[i] = (selectLeft) ? inArray[left] : inArray[right];
+			
+			left += selectLeft;
+			right += 1 - selectLeft;
+		}
+	}
+\end{lstlisting}
 
-Questo si rispecchia anche nei valori relativi alla F-Score, che risultano essere pari a $F(\textsf{luhn})= (2 \times 0.625 \times 0.714) / (0.625 + 0.714) = 0.666$ e
-$F(\textsf{brevity})= (2 \times 0.625 \times 0.625) / (0.625 + 0.625) = 0.625$.
+\subsection{Selezione del processore}
+\begin{lstlisting}[language=C++, caption={Compute metrics kernel II},captionpos=b]
+	void ScheduleTasksOnProcessors()
+	{
+		for (int i = 0; i < metrics_len; i++)
+		{
+			int current_node = ordered_metrics[i].z; 
+			if (current_node >= n_nodes) continue;
+			int predecessor_with_max_aft = -1;
+			int max_aft_of_predecessors = -1;
+			int processor_for_max_aft_predecessor = -1;
+			int weight_for_max_aft_predecessor = 0;
 
-Infine la similarit\`{a} tra il riassunto manuale ed il riassunto ottenuto attraverso il metodo di Luhn risulta avere un valore pari a $5$.
-Lo stesso pu\`{o} essere detto per il valore di similarit\`{a} tra il riassunto manuale ed il riassunto ottenuto con Brevity.
-
-
-
-\newpage
-\section{Valutazione sul testo ``Gaius Julius Caesar''}
-Il testo utilizzato per la presente valutazione contiene una breve descrizione della vita del condottiero romano Gaio Giulio Cesare.
-Il brano \`{e} scritto in lingua inglese e contiene 165 lemmi diversi, e 16 frasi.
-Di seguito viene presentato il brano integralmente. Le frasi del testo sono numerate in ordine crescente.
-
-\begin{small}
-\subsection*{Testo originale ``Gaius Julius Caesar''}
-{$^{[0]}$}Gaius Julius Caesar was a Roman general and statesman. 
-{$^{[1]}$}He played a critical role in the gradual transformation of the Roman Republic into the Roman Empire.
-{$^{[2]}$}In 60 BC, Caesar entered into a political alliance with Crassus and Pompey that was to dominate Roman politics for several years. 
-{$^{[3]}$}Their attempts to amass power through populist tactics were opposed within the Roman Senate by the conservative elite, among them Cato the Younger with the frequent support of Cicero. 
-{$^{[4]}$}Caesar's conquest of Gaul extended Rome's territory to the North Sea, and in 55 BC he conducted the first Roman invasion of Britain. 
-{$^{[5]}$}These achievements granted him unmatched military power and threatened to eclipse Pompey's standing. 
-{$^{[6]}$}The balance of power was further upset by the death of Crassus in 53 BC. 
-{$^{[7]}$}Political realignments in Rome finally led to a standoff between Caesar and Pompey, the latter having taken up the cause of the Senate. 
-{$^{[8]}$}Ordered by the senate to stand trial in Rome for various charges, Caesar marched from Gaul to Italy with his legions, crossing the Rubicon in 49 BC. 
-{$^{[9]}$}This sparked a civil war from which he emerged as the unrivaled leader of the Roman world.
-{$^{[10]}$}After assuming control of government, he began extensive reforms of Roman society and government. 
-{$^{[11]}$}He centralised the bureaucracy of the Republic and was eventually proclaimed dictator in perpetuity. 
-{$^{[12]}$}A group of senators, led by Marcus Junius Brutus, assassinated the dictator on the Ides of March 44 BC, hoping to restore the constitutional government of the {$^{[13]}$}Republic. However, the result was a series of civil wars, which ultimately led to the establishment of the permanent Roman Empire by Caesar's adopted heir Octavius (later known as Augustus). 
-{$^{[14]}$}Much of Caesar's life is known from his own accounts of his military campaigns, and other contemporary sources, mainly the letters and speeches of Cicero and the historical writings of Sallust. 
-{$^{[15]}$}The later biographies of Caesar by Suetonius and Plutarch are also major sources.
-\vfill
-\end{small}
-
-\newpage
-Di seguito viene mostrata la tabella delle parole contenute all'interno del testo,
-ordinate in base al numero di occorrenze.
-Si noti che parole con il medesimo lemma vengono considerate identiche.
-
-\begin{center}
-\begin{scriptsize}
-\begin{tabular}{|ll|}
-\hline
-roman         & 9\\
-caesar        & 8\\
-statesman     & 6\\
-was           & 5\\
-bc            & 5\\
-senate        & 4\\
-republic      & 3\\
-political     & 3\\
-pompey        & 3\\
-power         & 3\\
-rome          & 3\\%0.02
-standing      & 3\\%0.02
-led           & 3\\%0.02
-government    & 3\\%0.02
-empire        & 2\\%0.01
-crassus       & 2\\%0.01
-cicero        & 2\\%0.01
-gaul          & 2\\%0.01
-extended      & 2\\%0.01
-military      & 2\\%0.01
-upset         & 2\\%0.01
-marched       & 2\\%0.01
-civil         & 2\\%0.01
-dictator      & 2\\%0.01
-later         & 2\\%0.01
-known         & 2\\%0.01
-sources       & 2\\%0.01
-julius        & 1\\%0.01
-general       & 1\\%0.01
-played        & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-critical      & 1\\%0.01
-role          & 1\\%0.01
-gradual       & 1\\%0.01
-transformation& 1\\%0.01
-entered       & 1\\%0.01
-alliance      & 1\\%0.01
-dominate      & 1\\%0.01
-years         & 1\\%0.01
-attempts      & 1\\%0.01
-amass         & 1\\%0.01
-populist      & 1\\%0.01
-tactics       & 1\\%0.01
-were          & 1\\%0.01
-opposed       & 1\\%0.01
-conservative  & 1\\%0.01
-elite         & 1\\%0.01
-cato          & 1\\%0.01
-younger       & 1\\%0.01
-frequent      & 1\\%0.01
-support       & 1\\%0.01
-conquest      & 1\\%0.01
-territory     & 1\\%0.01
-north         & 1\\%0.01
-sea           & 1\\%0.01
-conducted     & 1\\%0.01
-first         & 1\\%0.01
-invasion      & 1\\%0.01
-britain       & 1\\%0.01
-achievements  & 1\\%0.01
-granted       & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-unmatched     & 1\\%0.01
-threatened    & 1\\%0.01
-eclipse       & 1\\%0.01
-balance       & 1\\%0.01
-further       & 1\\%0.01
-death         & 1\\%0.01
-realignments  & 1\\%0.01
-finally       & 1\\%0.01
-latter        & 1\\%0.01
-having        & 1\\%0.01
-taken         & 1\\%0.01
-cause         & 1\\%0.01
-ordered       & 1\\%0.01
-trial         & 1\\%0.01
-various       & 1\\%0.01
-charges       & 1\\%0.01
-italy         & 1\\%0.01
-legions       & 1\\%0.01
-crossing      & 1\\%0.01
-rubicon       & 1\\%0.01
-sparked       & 1\\%0.01
-war           & 1\\%0.01
-emerged       & 1\\%0.01
-unrivaled     & 1\\%0.01
-leader        & 1\\%0.01
-world         & 1\\%0.01
-assuming      & 1\\%0.01
-control       & 1\\%0.01
-began         & 1\\%0.01
-reforms       & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-society       & 1\\%0.01
-centralised   & 1\\%0.01
-bureaucracy   & 1\\%0.01
-eventually    & 1\\%0.01
-proclaimed    & 1\\%0.01
-perpetuity    & 1\\%0.01
-group         & 1\\%0.01
-marcus        & 1\\%0.01
-junius        & 1\\%0.01
-brutus        & 1\\%0.01
-assassinated  & 1\\%0.01
-ides          & 1\\%0.01
-hoping        & 1\\%0.01
-restore       & 1\\%0.01
-constitutional& 1\\%0.01
-however       & 1\\%0.01
-result        & 1\\%0.01
-series        & 1\\%0.01
-wars          & 1\\%0.01
-ultimately    & 1\\%0.01
-establishment & 1\\%0.01
-permanent     & 1\\%0.01
-adopted       & 1\\%0.01
-heir          & 1\\%0.01
-octavius      & 1\\%0.01
-augustus      & 1\\%0.01
-life          & 1\\%0.01
-is            & 1\\%0.01
-own           & 1\\%0.01
-accounts      & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-campaigns     & 1\\%0.01
-contemporary  & 1\\%0.01
-mainly        & 1\\%0.01
-letters       & 1\\%0.01
-speeches      & 1\\%0.01
-historical    & 1\\%0.01
-writings      & 1\\%0.01
-sallust       & 1\\%0.01
-biographies   & 1\\%0.01
-suetonius     & 1\\%0.01
-plutarch      & 1\\%0.01
-are           & 1\\%0.01
-also          & 1\\%0.01
-major         & 1\\%0.01
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-&\\
-\hline
-\end{tabular}
-\end{scriptsize}
-\end{center}
-
-
-\newpage
-\subsection*{Riassunto manuale del testo}
-\begin{small}
-{$^{[0]}$}Gaius Julius Caesar was a Roman general and statesman. 
-{$^{[1]}$}He played a critical role in the gradual transformation of the Roman Republic into the Roman Empire.
-{$^{[2]}$}In 60 BC, Caesar entered into a political alliance with Crassus and Pompey that was to dominate Roman politics for several years. 
-%Their attempts to amass power through populist tactics were opposed within the Roman Senate by the conservative elite, among them Cato the Younger with the frequent support of Cicero. 
-{$^{[4]}$}Caesar's conquest of Gaul extended Rome's territory to the North Sea, and in 55 BC he conducted the first Roman invasion of Britain. 
-%These achievements granted him unmatched military power and threatened to eclipse Pompey's standing. 
-%The balance of power was further upset by the death of Crassus in 53 BC. 
-%Political realignments in Rome finally led to a standoff between Caesar and Pompey, the latter having taken up the cause of the Senate. 
-%Ordered by the senate to stand trial in Rome for various charges, Caesar marched from Gaul to Italy with his legions, crossing the Rubicon in 49 BC. 
-%This sparked a civil war from which he emerged as the unrivaled leader of the Roman world.
-{$^{[10]}$}After assuming control of government, he began extensive reforms of Roman society and government. 
-{$^{[11]}$}He centralised the bureaucracy of the Republic and was eventually proclaimed dictator in perpetuity. 
-{$^{[12]}$}A group of senators, led by Marcus Junius Brutus, assassinated the dictator on the Ides of March 44 BC, hoping to restore the constitutional government of the {$^{[13]}$}Republic. However, the result was a series of civil wars, which ultimately led to the establishment of the permanent Roman Empire by Caesar's adopted heir Octavius (later known as Augustus). 
-%Much of Caesar's life is known from his own accounts of his military campaigns, and other contemporary sources, mainly the letters and speeches of Cicero and the historical writings of Sallust. 
-%The later biographies of Caesar by Suetonius and Plutarch are also major sources.
-\vfill
-\end{small}
-
-
-\subsection*{Riassunto automatico del testo (metodo di Luhn)}
-\begin{small}
-{$^{[2]}$}n 60 BC, Caesar entered into a political alliance with Crassus and Pompey that was to dominate Roman politics for several years.
-{$^{[3]}$}Their attempts to amass power through populist tactics were opposed within the Roman Senate by the conservative elite, among them Cato the Younger with the frequent support of Cicero.
-{$^{[4]}$}Caesar's conquest of Gaul extended Rome's territory to the North Sea, and in 55 BC he conducted the first Roman invasion of Britain.
-{$^{[7]}$}Political realignments in Rome finally led to a standoff between Caesar and Pompey, the latter having taken up the cause of the Senate.
-{$^{[8]}$}Ordered by the senate to stand trial in Rome for various charges, Caesar marched from Gaul to Italy with his legions, crossing the Rubicon in 49 BC.
-{$^{[12]}$}A group of senators, led by Marcus Junius Brutus, assassinated the dictator on the Ides of March 44 BC, hoping to restore the constitutional government of the Republic.
-{$^{[13]}$}However, the result was a series of civil wars, which ultimately led to the establishment of the permanent Roman Empire by Caesar's adopted heir Octavius (later known as Augustus).
-\vfill
-\end{small}
-
-\subsection*{Riassunto automatico del testo (toll Brevity)}
-\begin{small}
-{$^{[0]}$}Gaius Julius Caesar was a Roman general and statesman. 
-{$^{[1]}$}He played a critical role in the gradual transformation of the Roman Republic into the Roman Empire. 
-{$^{[2]}$}In 60 BC, Caesar entered into a political alliance with Crassus and Pompey that was to dominate Roman politics for several years. 
-{$^{[3]}$}Their attempts to amass power through populist tactics were opposed within the Roman Senate by the conservative elite, among them Cato the Younger with the frequent support of Cicero. 
-{$^{[4]}$}Caesar's conquest of Gaul extended Rome's territory to the North Sea, and in 55 BC he conducted the first Roman invasion of Britain. 
-{$^{[5]}$}These achievements granted him unmatched military power and threatened to eclipse Pompey's standing. 
-{$^{[6]}$}The balance of power was further upset by the death of Crassus in 53 BC. 
-{$^{[7]}$}Political realignments in Rome finally led to a standoff between Caesar and Pompey, the latter having taken up the cause of the Senate.
-\vfill
-\end{small}
-
-\subsection*{Valutazione}
-In questa sezione effettueremo la valutazione dei due riassunti automatici ottenuti con il metodo di Luhn e con Brevity.
-La valutazione verr\`{a} effettuata sulla base dei valori di precision, recall ed F-Score. Inoltre verr\`{a} calcolato anche il grado di similarit\`{a} dei due riassunti automatici con il riassunto generato maualmente.
-
-Per quanto riguarda i valori di precision si ottiene $P(\textsf{luhn})= 4 / 8 = 0.5$ e $P(\textsf{brevity})= 4 / 8 = 0.5$. Essi quindi risultano essere
-identici per entrambi i riassunti automatici.
-
-Per quanto riguarda il valore di recall si ottiene $R(\textsf{luhn})= 4 / 7 = 0.571$ e $R(\textsf{brevity})= 4 / 8 = 0.5$. Il metodo proposto da Luhn risulta quindi avere una valutazione leggermente migliore.
-
-Questo si rispecchia anche nei valori relativi alla F-Score, che risultano essere pari a $F(\textsf{luhn})= (2 \times 0.5 \times 0.571) / (0.5 + 0.571) = 0.533$ e
-$F(\textsf{brevity})= (2 \times 0.5 \times 0.5) / (0.5 + 0.5) = 0.5$.
-
-Infine la similarit\`{a} tra il riassunto manuale ed il riassunto ottenuto attraverso il metodo di Luhn risulta avere un valore pari a $4$.
-Lo stesso pu\`{o} essere detto per il valore di similarit\`{a} tra il riassunto manuale ed il riassunto ottenuto con Brevity.
-
-
-\newpage
-
-\section{Valutazione sul testo ``Linux''}
-Il testo utilizzato per la terza valutazione contiene una breve descrizione del Sistema Operativo Linux.
-Il brano \`{e} scritto in lingua inglese e contiene 146 lemmi diversi, e 15 frasi.
-Di seguito viene presentato il brano integralmente. Le frasi del testo sono numerate in ordine crescente a partire dalla posizione $0$.
-
-\begin{small}
-\subsection*{Testo originale ``Linux''}
-{$^{[0]}$}Linux refers to the family of Unix-like computer operating systems using the Linux kernel. 
-{$^{[1]}$}Linux can be installed on a wide variety of computer hardware, ranging from mobile phones, tablet computers, routers, and video game consoles, to mainframes and supercomputers.
-{$^{[2]}$}Linux is a leading server operating system, and runs the 10 fastest supercomputers in the world.
-{$^{[3]}$}The development of Linux is one of the most prominent examples of free and open source software collaboration.
-{$^{[4]}$}Typically all the underlying source code can be used, freely modified, and redistributed, both commercially and non-commercially, by anyone under licenses such as the GNU General Public License. 
-{$^{[5]}$}Typically Linux is packaged in a format known as a Linux distribution for desktop and server use. 
-{$^{[6]}$}Some popular mainstream Linux distributions include Debian (and its derivatives such as Ubuntu), Fedora and openSUSE. 
-{$^{[7]}$}Linux distributions include the Linux kernel and supporting utilities and libraries to fulfill the distribution's intended use.
-{$^{[8]}$}A distribution oriented toward desktop use may include the X Window System, the GNOME and KDE Plasma desktop environments. 
-{$^{[9]}$}Other distributions may include a less resource intensive desktop such as LXDE or Xfce for use on older or less-powerful computers. 
-{$^{[10]}$}A distribution intended to run as a server may omit any graphical environment from the standard install and instead include other software such as the Apache HTTP Server and a SSH server like OpenSSH. 
-{$^{[11]}$}Because Linux is freely redistributable, it is possible for anyone to create a distribution for any intended use. 
-{$^{[12]}$}Commonly used applications with desktop Linux systems include the Mozilla Firefox web browser, the OpenOffice.org and LibreOffice office application suites, and the GIMP image editor.
-{$^{[13]}$}The name "Linux" comes from the Linux kernel, originally written in 1991 by Linus Torvalds. 
-{$^{[14]}$}The main supporting user space system tools and libraries from the GNU Project (announced in 1983 by Richard Stallman) are the basis for the Free Software Foundation's preferred name GNU/Linux.
-\vfill
-\end{small}
-
-\newpage
-Di seguito viene mostrata la tabella delle parole contenute all'interno del testo,
-ordinate in base al numero di occorrenze.
-Si noti che parole con il medesimo lemma vengono considerate identiche.
-
-\begin{center}
-\begin{scriptsize}
-\begin{tabular}{|ll|}
-\hline
-distribution   & 8\\%	0.05
-used           & 7\\%	0.05
-installed      & 6\\%	0.04
-format         & 6\\%	0.04
-include        & 6\\%	0.04
-systems        & 5\\%	0.03
-is             & 5\\%	0.03
-server         & 5\\%	0.03
-desktop        & 5\\%	0.03
-computer       & 4\\%	0.03
-supercomputers & 4\\%	0.03
-such           & 4\\%	0.03
-intended       & 4\\%	0.03
-kernel         & 3\\%0.02
-software       & 3\\%0.02
-gnu            & 3\\%0.02
-oriented       & 3\\%0.02
-may            & 3\\%0.02
-operating      & 2\\%0.01
-can            & 2\\%0.01
-mainframes     & 2\\%0.01
-runs           & 2\\%0.01
-free           & 2\\%0.01
-source         & 2\\%0.01
-typically      & 2\\%0.01
-underlying     & 2\\%0.01
-freely         & 2\\%0.01
-redistributed  & 2\\%0.01
-commercially   & 2\\%0.01
-licenses       & 2\\%0.01
-opensuse       & 2\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-supporting     & 2\\%0.01
-libraries      & 2\\%0.01
-environments   & 2\\%0.01
-less           & 2\\%0.01
-applications   & 2\\%0.01
-name           & 2\\%0.01
-refers         & 1\\%0.01
-family         & 1\\%0.01
-unix           & 1\\%0.01
-using          & 1\\%0.01
-wide           & 1\\%0.01
-variety        & 1\\%0.01
-hardware       & 1\\%0.01
-ranging        & 1\\%0.01
-mobile         & 1\\%0.01
-phones         & 1\\%0.01
-tablet         & 1\\%0.01
-routers        & 1\\%0.01
-video          & 1\\%0.01
-game           & 1\\%0.01
-consoles       & 1\\%0.01
-leading        & 1\\%0.01
-fastest        & 1\\%0.01
-world          & 1\\%0.01
-development    & 1\\%0.01
-prominent      & 1\\%0.01
-examples       & 1\\%0.01
-open           & 1\\%0.01
-collaboration  & 1\\%0.01
-code           & 1\\%0.01
-modified       & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-general        & 1\\%0.01
-public         & 1\\%0.01
-packaged       & 1\\%0.01
-known          & 1\\%0.01
-popular        & 1\\%0.01
-mainstream     & 1\\%0.01
-debian         & 1\\%0.01
-derivatives    & 1\\%0.01
-ubuntu         & 1\\%0.01
-fedora         & 1\\%0.01
-utilities      & 1\\%0.01
-fulfill        & 1\\%0.01
-x              & 1\\%0.01
-window         & 1\\%0.01
-gnome          & 1\\%0.01
-kde            & 1\\%0.01
-plasma         & 1\\%0.01
-resource       & 1\\%0.01
-lxde           & 1\\%0.01
-xfce           & 1\\%0.01
-older          & 1\\%0.01
-powerful       & 1\\%0.01
-omit           & 1\\%0.01
-graphical      & 1\\%0.01
-standard       & 1\\%0.01
-apache         & 1\\%0.01
-http           & 1\\%0.01
-ssh            & 1\\%0.01
-because        & 1\\%0.01
-possible       & 1\\%0.01
-create         & 1\\%0.01
-\hline
-\end{tabular}
-\begin{tabular}{|ll|}
-\hline
-commonly       & 1\\%0.01
-mozilla        & 1\\%0.01
-firefox        & 1\\%0.01
-web            & 1\\%0.01
-browser        & 1\\%0.01
-openoffice     & 1\\%0.01
-org            & 1\\%0.01
-libreoffice    & 1\\%0.01
-office         & 1\\%0.01
-suites         & 1\\%0.01
-gimp           & 1\\%0.01
-image          & 1\\%0.01
-editor         & 1\\%0.01
-comes          & 1\\%0.01
-originally     & 1\\%0.01
-written        & 1\\%0.01
-linus          & 1\\%0.01
-torvalds       & 1\\%0.01
-user           & 1\\%0.01
-space          & 1\\%0.01
-tools          & 1\\%0.01
-project        & 1\\%0.01
-announced      & 1\\%0.01
-richard        & 1\\%0.01
-stallman       & 1\\%0.01
-are            & 1\\%0.01
-basis          & 1\\%0.01
-foundation     & 1\\%0.01
-preferred      & 1\\%0.01
-&\\
-&\\
-\hline
-\end{tabular}
-\end{scriptsize}
-\end{center}
-
-\newpage
-\begin{small}
-\subsection*{Riassunto manuale del testo}
-{$^{[0]}$}Linux refers to the family of Unix-like computer operating systems using the Linux kernel. 
-{$^{[1]}$}Linux can be installed on a wide variety of computer hardware, ranging from mobile phones, tablet computers, routers, and video game consoles, to mainframes and supercomputers.
-%{$^{[2]}$}Linux is a leading server operating system, and runs the 10 fastest supercomputers in the world.
-{$^{[3]}$}The development of Linux is one of the most prominent examples of free and open source software collaboration.
-{$^{[4]}$}Typically all the underlying source code can be used, freely modified, and redistributed, both commercially and non-commercially, by anyone under licenses such as the GNU General Public License. 
-%{$^{[5]}$}Typically Linux is packaged in a format known as a Linux distribution for desktop and server use. 
-%{$^{[6]}$}Some popular mainstream Linux distributions include Debian (and its derivatives such as Ubuntu), Fedora and openSUSE. 
-{$^{[7]}$}Linux distributions include the Linux kernel and supporting utilities and libraries to fulfill the distribution's intended use.
-%{$^{[8]}$}A distribution oriented toward desktop use may include the X Window System, the GNOME and KDE Plasma desktop environments. 
-%{$^{[9]}$}Other distributions may include a less resource intensive desktop such as LXDE or Xfce for use on older or less-powerful computers. 
-%{$^{[10]}$}A distribution intended to run as a server may omit any graphical environment from the standard install and instead include other software such as the Apache HTTP Server and a SSH server like OpenSSH. 
-{$^{[11]}$}Because Linux is freely redistributable, it is possible for anyone to create a distribution for any intended use. 
-%{$^{[12]}$}Commonly used applications with desktop Linux systems include the Mozilla Firefox web browser, the OpenOffice.org and LibreOffice office application suites, and the GIMP image editor.
-{$^{[13]}$}The name "Linux" comes from the Linux kernel, originally written in 1991 by Linus Torvalds. 
-%{$^{[14]}$}The main supporting user space system tools and libraries from the GNU Project (announced in 1983 by Richard Stallman) are the basis for the Free Software Foundation's preferred name GNU/Linux.
-\vfill
-\end{small}
-
-\subsection*{Riassunto automatico del testo (metodo di Luhn)}
-\begin{small}
-{$^{[1]}$}Linux can be installed on a wide variety of computer hardware, ranging from mobile phones, tablet computers, routers, and video game consoles, to mainframes and supercomputers.
-{$^{[2]}$}Linux is a leading server operating system, and runs the 10 fastest supercomputers in the world.
-{$^{[4]}$}Typically all the underlying source code can be used, freely modified, and redistributed, both commercially and non-commercially, by anyone under licenses such as the GNU General Public License.
-{$^{[8]}$}A distribution oriented toward desktop use may include the X Window System, the GNOME and KDE Plasma desktop environments.
-{$^{[9]}$}Other distributions may include a less resource intensive desktop such as LXDE or Xfce for use on older or less-powerful computers.
-{$^{[10]}$}A distribution intended to run as a server may omit any graphical environment from the standard install and instead include other software such as the Apache HTTP Server and a SSH server like OpenSSH.
-{$^{[14]}$}The name "Linux" comes from the Linux kernel, originally written in 1991 by Linus Torvalds.
-\vfill
-\end{small}
-
-
-\subsection*{Riassunto automatico del testo (tool Brevity)}
-\begin{small}
-{$^{[0]}$}Linux refers to the family of Unix-like computer operating systems using the Linux kernel. 
-{$^{[1]}$}Linux can be installed on a wide variety of computer hardware, ranging from mobile phones, tablet computers, routers, and video game consoles, to mainframes and supercomputers. 
-{$^{[2]}$}Linux is a leading server operating system, and runs the 10 fastest supercomputers in the world. 
-{$^{[3]}$}The development of Linux is one of the most prominent examples of free and open source software collaboration. 
-{$^{[4]}$}Typically all the underlying source code can be used, freely modified, and redistributed, both commercially and non-commercially, by anyone under licenses such as the GNU General Public License. 
-{$^{[5]}$}Typically Linux is packaged in a format known as a Linux distribution for desktop and server use. 
-{$^{[6]}$}Some popular mainstream Linux distributions include Debian (and its derivatives such as Ubuntu), Fedora and openSUSE.      
-\vfill
-\end{small}
-
-\subsection*{Valutazione}
-In questa sezione effettueremo la valutazione dei due riassunti automatici ottenuti con il metodo di Luhn e con Brevity.
-La valutazione verr\`{a} effettuata sulla base dei valori di precision, recall ed F-Score. Inoltre verr\`{a} calcolato anche il grado di similarit\`{a} dei due riassunti automatici con il riassunto generato maualmente.
-
-Per quanto riguarda i valori di precision si ottiene $P(\textsf{luhn})= 2 / 7 = 0.285$ e $P(\textsf{brevity})= 4 / 7 = 0.571$. Essi quindi risultano essere
-identici per entrambi i riassunti automatici.
-
-Per quanto riguarda il valore di recall si ottiene $R(\textsf{luhn})= 2 / 7 = 0.285$ e $R(\textsf{brevity})= 4 / 7 = 0.571$. Il metodo proposto da Luhn risulta quindi avere una valutazione leggermente migliore.
-
-Questo si rispecchia anche nei valori relativi alla F-Score, che risultano essere pari a $F(\textsf{luhn})= (2 \times 0.285 \times 0.285) / (0.285 + 0.285) = 0.285$ e
-$F(\textsf{brevity})= (2 \times 0.571 \times 0.571) / (0.571 + 0.571) = 0.571$.
-
-Infine la similarit\`{a} tra il riassunto manuale ed il riassunto ottenuto attraverso il metodo di Luhn risulta avere un valore pari a $2$.
-Il valore di similarit\`{a} tra il riassunto manuale ed il riassunto ottenuto con Brevity \`{e} invece pari a $4$.
+			for (int j = 0; j < DAG->max_parents_for_nodes; j++)
+			{
+				int currentParent = edges[matrix_to_array_indexes(j, current_node, DAG->len)];
+				if (currentParent > -1) {
+					int edge_weight_with_parent = predecessors[matrix_to_array_indexes(j, current_node, DAG->len)];
+					int parentEFT = task_processor_assignment[currentParent].z + edge_weight_with_parent;
+					if (parentEFT > max_aft_of_predecessors) {
+						max_aft_of_predecessors = parentEFT;
+						predecessor_with_max_aft = currentParent;
+						processor_for_max_aft_predecessor = task_processor_assignment[currentParent].x;
+						weight_for_max_aft_predecessor = edge_weight_with_parent;
+					}
+				}
+			}
+			
+			int eft_min = INT_MAX;
+			
+			int cost_of_predecessors_in_different_processors = 0;
+			int remaining_transfer_cost = 0;
+			for (int j = 0; j < DAG->max_parents_for_nodes; j++)
+			{
+				int currentParent = edges[matrix_to_array_indexes(j, current_node, DAG->len)];
+				if (currentParent > -1 && currentParent != predecessor_with_max_aft) {
+					cost_of_predecessors_in_different_processors = max(
+					cost_of_predecessors_in_different_processors,
+					task_processor_assignment[currentParent].z + predecessors[matrix_to_array_indexes(j, current_node, DAG->len)]);
+				}
+			}
+			
+			for (int processor = 0; processor < DAG->number_of_processors; processor++) {
+				int cost_of_predecessor_in_same_processor = 0;
+				int cost_on_processor = costs[matrix_to_array_indexes(current_node, processor, DAG->number_of_processors)];
+				if (processor_for_max_aft_predecessor == processor) {
+					cost_of_predecessor_in_same_processor = weight_for_max_aft_predecessor;
+				}
+				remaining_transfer_cost = max(max_aft_of_predecessors - cost_of_predecessor_in_same_processor, cost_of_predecessors_in_different_processors);
+				
+				int est = max(processorsNextSlotStart[processor], remaining_transfer_cost);
+				int eft = est + cost_on_processor;
+				if (eft < eft_min) {
+					eft_min = eft;
+					task_processor_assignment[current_node] = cl_int3{ processor, est, eft };
+				}
+			}
+			
+			processorsNextSlotStart[task_processor_assignment[current_node].x] = task_processor_assignment[current_node].z;
+		}
+	}
+\end{lstlisting}
+\section{Ottimizzazioni}

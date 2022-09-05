@@ -1,0 +1,22 @@
+\chapter{Note varie durante la stesura}
+\vspace{4cm}
+
+\section{Note su PETS}
+
+Si tratta di un algoritmo di scheduling per sistemi eterogenei, in cui i processori hanno caratteristiche diverse fra loro.
+
+basato su list scheduling
+
+task scheduling è np-completo
+
+PETS usa un heap binario per coda di priorità bisogna vedere noi come giustifichiamo la mancanza, l'heap immagino sia impossibile da implementare in parallelo, inoltre stiamo già usando un array ordinato quindi non capisco la necessità di avere un heap, forse perchè la complessità del sort è superiore a quella del heap. Ma è un cambiamento così sconvolgente dei risultati? Inoltre è un trade off necessario per l'implementazione parallela.
+
+loro hanno usato Intel Xeon a 1ghz per i test, quindi per verificare le tempistiche avremmo bisogno dello stesso processore o di qualcosa di simile, come si fa?
+
+il random generator che hanno copiato dal paper  di heft e cpop può essere scritto più agilmente in c# 
+
+la comparazione va fatta con una implementazione, magari in c# di PETS non parallelizzato in modo da avere delle metriche oggettive che siano state estrapolate da test effettuati sulla stessa macchina, oltre che su GPU in secondo luogo per mostrare il miglioramento ulteriore delle prestazioni.
+
+i grafi usati nei vari paper sono grafi molto piccoli quindi mi chiedo come facciano a calcolare efficacemente i tempi.
+I grafi puoi trovarli a: Hypertool_a_programming_aid_for_message-passing_systems.pdf
+Performance-effective_and_low-complexity_task_scheduling_for_heterogeneous_computing

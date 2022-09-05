@@ -3,6 +3,8 @@
 \usepackage[italian]{babel}
 \usepackage{graphics}
 \usepackage{graphicx}
+\usepackage{color}
+\usepackage{hyperref}
 \usepackage{epsfig}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -12,7 +14,39 @@
 \usepackage{url}
 \usepackage{xspace}
 \usepackage{xthesis} 
-\usepackage{xtocinc}                    
+\usepackage{xtocinc} 
+
+%Necessari per blocchi di codice
+\usepackage{listings}    
+\usepackage[dvipsnames]{xcolor}      
+\definecolor{color1}{HTML}{4B30FF}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+	language=Java,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{gray},
+	keywordstyle=\color{blue},
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	breaklines=true,
+	breakatwhitespace=true,
+	tabsize=3
+}
+
+\lstset { %
+	language=C++,
+	backgroundcolor=\color{black!5}, % set backgroundcolor
+	basicstyle=\footnotesize,% basic font setting
+}
+%END - Necessari per blocchi di codice
 
 \newlength{\defbaselineskip}
 \setlength{\defbaselineskip}{\baselineskip}
@@ -28,9 +62,10 @@
 
 
 % Le segueti informazioni devono essere modificate dallo studente
-\title {Implementazione parallela su GPU dell'algoritmo di task scheduling PETS}\\
-%\begin{large}Qui \`e Possibile Inserire un Sottotitolo\end{large}
+\title {Implementazione parallela su GPU dell'algoritmo di task scheduling PETS}
+%\begin{large}Qui \`e Possibile Inserire un Sottotitolo\end{large} %da inserire dentro il tag title
 \author{Gabriele Messina}
+
 \date{Anno Accademico 2021/22}
 
 
@@ -65,8 +100,8 @@
 \include{capitolo1}
 \include{capitolo2}
 \include{capitolo3}
-%\include{capitolo4}
-%\include{capitolo5}
+\include{capitolo4}
+\include{capitolo5}
 
 
 \begin{frontmatter}
