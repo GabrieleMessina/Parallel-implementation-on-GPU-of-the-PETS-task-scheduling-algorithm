@@ -4,35 +4,33 @@ Un'insieme di risorse interconnesse fra loro attraverso una rete ad alta velocit
 Un sistema eterogeneo richiede uno scheduling efficiente dei processi per poter garantire alte prestazioni all'utente finale.
 
 \section{Task scheduling}
-Il problema del task scheduling consiste nell'assegnare ogni processo di un'applicazione al processore che garantisce le prestazioni migliori in quel momento cioè che, considerando il carico di lavoro su tutti i processori, il costo computazionale del processo e il costo del trasferimento di dati da eventuali processi genitori, porti a compimento il lavoro del processo nel minor tempo.
+Il problema del task scheduling consiste nell'assegnare ogni processo di un'applicazione al processore che garantisce le prestazioni migliori in quel momento, cioè che, considerando il carico di lavoro su tutti i processori, il costo computazionale del processo e il costo del trasferimento di dati da eventuali processi genitori, porti a compimento il lavoro del processo nel minor tempo.
 La letteratura a riguardo è vasta e, soprattutto negli ultimi anni, si è concentrata anche sull'ottimizzazione dello scheduling in sistemi eterogenei dove si aggiunge un ulteriore livello di complessità dovuto al fatto che i processori hanno prestazioni diverse fra loro, caratteristica che influisce sul tempo di esecuzione di un processo e, quindi, sulla scelta del processore migliore a cui assegnarlo.
 
 Quando le caratteristiche dei processi si conoscono a priori queste informazioni vengono rappresentate attraverso una struttura dati detta DAG o Direct Acyclic Graph, si tratta di un grafo orientato aciclico che permette di rappresentare le informazioni sulle dipendenze tra processi. Una dipendenza indica che un processo necessita di dati provenienti da un altro il quale deve necessariamente finire l'esecuzione prima che l'altro possa essere eseguito.
-In una DAG i nodi rappresentano i processi e, gli archi, le dipendenze fra essi. Gli archi sono pesati e il peso indica la quantità di dati da trasferire da un processo all'altro o il tempo necessario al trasferimento.
+In questo contesto, i nodi rappresentano i processi e, gli archi, le dipendenze fra essi. Gli archi sono pesati e il peso indica la quantità di dati da trasferire da un processo all'altro o il tempo necessario al trasferimento.
 
-Il problema del task scheduling è NP-completo, quindi una soluzione ottimale può essere trovata solo dopo una ricerca esaustiva all'interno della struttura dati, ricerca che richiederebbe però tempi di scheduling elevati che i sistemi real-time non possono permettersi. 
+Il problema del task scheduling è NP-completo\cite{ULLMAN1975384}, quindi una soluzione ottimale può essere trovata solo dopo una ricerca esaustiva all'interno della struttura dati, ricerca che richiederebbe però tempi di scheduling elevati che i sistemi real-time non possono permettersi. 
 %In letteratura sono state quindi proposte molte euristiche che si propongono di trovare una soluzione accettabile al problema anche se non ottimale nel modo più veloce possibile.
-In letteratura sono state quindi proposte molte euristiche che si propongono di trovare un buon compromesso tra tempo di scheduling e approssimazione della soluzione ottima, uno di questi è l'algoritmo PETS.
+In letteratura sono state quindi proposte molte euristiche che si propongono di trovare un buon compromesso tra tempo di scheduling e approssimazione della soluzione ottima, uno di questi è l'algoritmo PETS\cite{ilavarasan2007low}.
 
 
 %~~~~~CARRELLATA DI FAMIGLIE DI EURISTICHE? (clustering, genetic, task duplication, ecc.)~~~~~~~
 
 \section{L'algoritmo PETS}
-L'algoritmo Performance Effective Task Scheduling (PETS), presentato in [], è un'euristica nata per diminuire il costo computazione dello scheduling su sistemi eterogenei rispetto ad altre euristiche presenti in letteratura come ad esempio HEFT e CPOP, in particolare PETS evita di calcolare il rango di un processo attraverso una procedura ricorsiva come fanno invece le controparti sopra citate.
-
-L'algoritmo Performance Effective Task Scheduling (PETS), presentato in [], è un'euristica che si propone di ottenere risultati migliori rispetto alle controparti già presenti in letteratura, vedi HEFT e CPOP, in termini di costo computazionale e ottimizzazione generale delle risorse.
+L'algoritmo Performance Effective Task Scheduling (PETS), presentato in \citetitle{ilavarasan2007low}\cite{ilavarasan2007low}, è un'euristica nata per diminuire il costo computazione dello scheduling su sistemi eterogenei rispetto ad altre euristiche presenti in letteratura come ad esempio HEFT\cite{993206} e CPOP\cite{993206}, in particolare PETS evita di calcolare il rango di un processo attraverso una procedura ricorsiva come fanno invece le controparti sopra citate.
 
 \section{Programmazione parallela}
 Tuttavia, pur scegliendo un'euristica molto efficiente, la soluzione richiede comunque tempi computazionali elevati, si ci è chiesto quindi se fosse possibile ridurre i tempi di scheduling parallelizzando l'algoritmo e sfruttando le capacità computazionali delle GPU (Graphics Processing Units).
 
 L'esecuzione parallela di un algoritmo consiste nel dividere il problema in problemi di entità minore e risolvere quest'ultimi contemporaneamente su diverse unità di elaborazione. In questo contesto le GPU giocano un ruolo fondamentale grazie alla loro capacità di processare grandi quantità di dati per ciclo di clock e alla gestione nativa di dati vettorizzati.
 
-L'implementazione parallela dell'algoritmo PETS tuttavia non è immediata, cioè non è imbarazzantemente parallela, questo perché i processi hanno dipendenze fra loro, inoltre la ricerca attraverso la DAG e l'ordinamento finale dei processi sulla base della priorità hanno una natura ricorsiva.
-È stato quindi necessario rivedere l'algoritmo PETS per poter parallelizzare la sua esecuzione, in particolare, sono stati sviluppati dei kernel in linguaggio OpenCL che replicassero il comportamento originario in chiave parallela.
+L'implementazione parallela dell'algoritmo PETS\cite{ilavarasan2007low} tuttavia non è immediata, cioè non è imbarazzantemente parallela, questo perché i processi hanno dipendenze fra loro ed inoltre la ricerca attraverso la DAG e l'ordinamento finale dei processi sulla base della priorità necessitano di un'attenzione particolare alla gestione della memoria per evitare race condition e inconsistenza dei dati.
+È stato quindi necessario rivedere l'algoritmo PETS per poter parallelizzare la sua esecuzione, in particolare sono stati sviluppati dei kernel in linguaggio OpenCL che replicassero il comportamento originario in chiave parallela.
 
 \section{OpenCL}
-OpenCL è un framework che permette di sviluppare programmi che possono essere eseguiti in parallelo, in particolare fornisce allo sviluppatore un'interfaccia comune indipendente dalla piattaforma su cui l'applicazione verrà eseguita.
-Questo permette di avere del codice multi piattaforma, rinunciando però a eventuali ottimizzazioni su piattaforme specifiche, ottimizzazioni per le quali sarebbe necessario sfruttare le interfacce native.
+OpenCL è un framework che permette di sviluppare programmi eseguibili in parallelo, in particolare fornisce allo sviluppatore un'interfaccia comune indipendente dalla piattaforma su cui l'applicazione verrà eseguita.
+Questo permette di avere del codice multi piattaforma, rinunciando però a eventuali ottimizzazioni su piattaforme specifiche, ottimizzazioni per le quali sarebbe necessario sfruttare le interfacce native dell'hardware.
 
 
 

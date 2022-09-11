@@ -11,7 +11,9 @@
 \usepackage{amsthm}
 \usepackage{rawfonts}
 \usepackage{enumerate}
+\usepackage{capt-of}
 \usepackage{url}
+\usepackage[binary-units]{siunitx}
 \usepackage{xspace}
 \usepackage{xthesis} 
 \usepackage{xtocinc} 
@@ -48,6 +50,21 @@
 }
 %END - Necessari per blocchi di codice
 
+%\usepackage{glossaries} 
+%\usepackage[acronym]{glossaries-extra}
+%\setabbreviationstyle[acronym]{long-short}
+%\newacronym{dag}{DAG}{Direct Acyclic Graph}
+%\newacronym{pets}{PETS}{Performance Effective Task Scheduling}
+%\makeglossaries
+
+%per grafici
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{pgfplots} 
+\pgfplotsset{compat=1.16} 
+\usetikzlibrary{datavisualization}
+%END - Per grafici
+
 \newlength{\defbaselineskip}
 \setlength{\defbaselineskip}{\baselineskip}
 \newcommand{\setlinespacing}[1]%
@@ -56,18 +73,20 @@
 \newcommand{\singlespacing}{\setlength{\baselineskip}{\defbaselineskip}}
 \newcommand{\mycenterline}[1]{\vspace{.1cm}\newline\vspace{.1cm}\centerline{#1}}
 
+%Bibliografia
+\usepackage[sorting=none]{biblatex}
+\addbibresource{refs.bib}
+%END - Bibliografia
+
 
 \begin{document}
 \selectlanguage{italian}
-
-
 % Le segueti informazioni devono essere modificate dallo studente
 \title {Implementazione parallela su GPU dell'algoritmo di task scheduling PETS}
 %\begin{large}Qui \`e Possibile Inserire un Sottotitolo\end{large} %da inserire dentro il tag title
 \author{Gabriele Messina}
 
 \date{Anno Accademico 2021/22}
-
 
 \chaptertitlestyle{serifbig}
 \pagestyle{serif}
@@ -103,11 +122,12 @@
 \include{capitolo4}
 \include{capitolo5}
 
-
+%\include{conclusioni}
 \begin{frontmatter}
 \pagenumbering{arabic} 
-\setcounter{page}{52}
+\setcounter{page}{0}
 \include{conclusioni}
-\include{bibliografia}
+%\include{bibliografia}
+\printbibliography[heading=bibintoc]
 \end{frontmatter}
 \end{document}

@@ -1,6 +1,6 @@
 \chapter{L'algoritmo PETS}
 \vspace{4cm}
-L'algoritmo Performance Effective Task Scheduling (PETS), presentato in [], è un'euristica che si propone di ottenere risultati migliori rispetto alle controparti già presenti in letteratura, vedi HEFT e CPOP, in termini di costo computazionale e ottimizzazione generale delle risorse.
+L'algoritmo Performance Effective Task Scheduling (PETS), presentato in \citetitle{ilavarasan2007low}\cite{ilavarasan2007low}, è un'euristica che si propone di ottenere risultati migliori rispetto alle controparti già presenti in letteratura, vedi HEFT\cite{993206} e CPOP\cite{993206}, in termini di costo computazionale e ottimizzazione generale delle risorse.
 \\
 L'algoritmo è diviso in tre fasi:
 \begin{itemize}
@@ -13,7 +13,7 @@ L'algoritmo è diviso in tre fasi:
 
 \section{Ordinamento sulla base del livello}
 In questa fase si attraversa la DAG attraverso una ricerca in ampiezza (BFS), partendo quindi dal task con tempo di inizio minore (o entry-task), con l'obiettivo di raggruppare nello stesso livello task che fra loro sono indipendenti e che quindi possono essere eseguiti in parallelo.
-In particolare, per ogni task, il livello ad esso associato è dato dal livello massimo dei suoi predecessori (nodi della DAG da cui il task dipende) incrementato di uno. I task che non hanno predecessori sono detti entry-task o entrypoint e sono assegnati al livello 0.
+In particolare, per ogni task il livello ad esso associato è dato dal livello massimo dei suoi predecessori (nodi della DAG da cui il task dipende) incrementato di uno. I task che non hanno predecessori sono detti entry-task o entrypoint e sono assegnati al livello 0.
 
 
 \section{Calcolo della priorità}
@@ -35,7 +35,7 @@ Quindi, per ogni livello, i task con grado più alto ricevono priorità maggiore
 
 
 \section{Selezione del processore}
-A questo punto si scandiscono i task sulla base della loro priorità e, ogni task, viene associato al processore migliore, cioè quello che fornisce $EFT$ minore. 
+A questo punto si scandiscono i task sulla base della loro priorità e, ogni task, viene associato al processore migliore, cioè quello che fornisce $EFT$ (Earliest Finish Time) minore. 
 Dove $EFT$ è definita come segue:
 \begin{displaymath}
 	avail[j] := \text{prossimo istante in cui il processore $j$ è libero}
@@ -47,7 +47,7 @@ Dove $EFT$ è definita come segue:
 	W\ped{i,j} := \text{costo computazionale del processo $i$ sul processore $j$} 
 \end{displaymath}
 \begin{equation}\label{EST}
-	EST(v\ped{i},p\ped{j}) = max(avail[j], max(AFT(v\ped{t}) + C\ped{t,i} : V\ped{t} \in pred(v\ped{i})))
+	EST(v\ped{i},p\ped{j}) = max(avail[j], max(EFT(v\ped{t}) + C\ped{t,i} : v\ped{t} \in pred(v\ped{i})))
 \end{equation}
 \begin{equation}\label{EFT}
 	EFT(v\ped{i},p\ped{j}) = W\ped{i,j} + EST(v\ped{i},p\ped{j})
@@ -60,5 +60,6 @@ La prima fase dell'algoritmo ha complessità $O(e)$ se si implementa la DAG attr
 L'ordinamento dei task ha complessità $O(\log(v))$ se si implementa una coda di priorità attraverso un heap binario.
 \\
 Infine per ogni task in coda si calcola il costo su ogni processore, quindi la complessità computazionale dell'algoritmo PETS è \( O(e)(p + \log{v}) \). \textcolor{red}{\( O(e)(p * \log{v}) \)?}
+%TODO: controllare questa analisi
 \\
 Con $v$ numero di task, $e$ numero di archi e $p$ numero di processori.

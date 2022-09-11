@@ -1,0 +1,132 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.1 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global}
+    \entry{ULLMAN1975384}{article}{}
+      \name{author}{1}{}{%
+        {{hash=c2a6f3f5770dc36d6e168640a2cd5991}{%
+           family={Ullman},
+           familyi={U\bibinitperiod},
+           given={J.D.},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{c2a6f3f5770dc36d6e168640a2cd5991}
+      \strng{fullhash}{c2a6f3f5770dc36d6e168640a2cd5991}
+      \strng{bibnamehash}{c2a6f3f5770dc36d6e168640a2cd5991}
+      \strng{authorbibnamehash}{c2a6f3f5770dc36d6e168640a2cd5991}
+      \strng{authornamehash}{c2a6f3f5770dc36d6e168640a2cd5991}
+      \strng{authorfullhash}{c2a6f3f5770dc36d6e168640a2cd5991}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We show that the problem of finding an optimal schedule for a set of jobs is NP-complete even in the following two restricted cases.o(1)All jobs require one time unit.(2)All jobs require one or two time units, and there are only two processor resolving (in the negative a conjecture of R. L. Graham, Proc. SJCC, 1972, pp. 205–218). As a consequence, the general preemptive scheduling problem is also NP-complete. These results are tantamount to showing that the scheduling problems mentioned are intractable.}
+      \field{issn}{0022-0000}
+      \field{journaltitle}{Journal of Computer and System Sciences}
+      \field{number}{3}
+      \field{title}{NP-complete scheduling problems}
+      \field{volume}{10}
+      \field{year}{1975}
+      \field{pages}{384\bibrangedash 393}
+      \range{pages}{10}
+      \verb{doi}
+      \verb https://doi.org/10.1016/S0022-0000(75)80008-0
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/S0022000075800080
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/S0022000075800080
+      \endverb
+    \endentry
+    \entry{ilavarasan2007low}{article}{}
+      \name{author}{2}{}{%
+        {{hash=ae0c2ac4eb3baac0dc64d1be4072e844}{%
+           family={Ilavarasan},
+           familyi={I\bibinitperiod},
+           given={E},
+           giveni={E\bibinitperiod}}}%
+        {{hash=474d16256c8a665e9b29f5848f90aa76}{%
+           family={Thambidurai},
+           familyi={T\bibinitperiod},
+           given={Perumal},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{c8c0e2b7e426d3f0d4305304df2e2ed8}
+      \strng{fullhash}{c8c0e2b7e426d3f0d4305304df2e2ed8}
+      \strng{bibnamehash}{c8c0e2b7e426d3f0d4305304df2e2ed8}
+      \strng{authorbibnamehash}{c8c0e2b7e426d3f0d4305304df2e2ed8}
+      \strng{authornamehash}{c8c0e2b7e426d3f0d4305304df2e2ed8}
+      \strng{authorfullhash}{c8c0e2b7e426d3f0d4305304df2e2ed8}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Computer sciences}
+      \field{number}{2}
+      \field{title}{Low complexity performance effective task scheduling algorithm for heterogeneous computing environments}
+      \field{volume}{3}
+      \field{year}{2007}
+      \field{pages}{94\bibrangedash 103}
+      \range{pages}{10}
+    \endentry
+    \entry{993206}{article}{}
+      \name{author}{3}{}{%
+        {{hash=3c28d6066557fa7cd9a991393a57e3c4}{%
+           family={Topcuoglu},
+           familyi={T\bibinitperiod},
+           given={H.},
+           giveni={H\bibinitperiod}}}%
+        {{hash=210f88d202d600556bf36168b184996f}{%
+           family={Hariri},
+           familyi={H\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod}}}%
+        {{hash=6aad39725cfc6277c4a5c135e880cb32}{%
+           family={Wu},
+           familyi={W\bibinitperiod},
+           given={Min-You},
+           giveni={M\bibinithyphendelim Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{a65ffd83b0a31324c52d378a20ff9f62}
+      \strng{fullhash}{a65ffd83b0a31324c52d378a20ff9f62}
+      \strng{bibnamehash}{a65ffd83b0a31324c52d378a20ff9f62}
+      \strng{authorbibnamehash}{a65ffd83b0a31324c52d378a20ff9f62}
+      \strng{authornamehash}{a65ffd83b0a31324c52d378a20ff9f62}
+      \strng{authorfullhash}{a65ffd83b0a31324c52d378a20ff9f62}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Parallel and Distributed Systems}
+      \field{number}{3}
+      \field{title}{Performance-effective and low-complexity task scheduling for heterogeneous computing}
+      \field{volume}{13}
+      \field{year}{2002}
+      \field{pages}{260\bibrangedash 274}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1109/71.993206
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

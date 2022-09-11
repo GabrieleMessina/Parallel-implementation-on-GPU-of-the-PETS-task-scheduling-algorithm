@@ -1,8 +1,8 @@
 \chapter{Il framework OpenCL}
 \vspace{4cm}
-OpenCL è uno standard open per lo sviluppo di programmi multi piattaforma eseguiti in parallelo che implementa un linguaggio simile al C con il quale è possibile scrivere delle funzioni, dette kernel, che potranno essere compilate a run-time ed eseguite in parallelo sull'hardware desiderato (device).
+OpenCL è uno standard open per lo sviluppo di programmi multi piattaforma eseguiti in parallelo che implementa un linguaggio derivato dal C con il quale è possibile scrivere delle funzioni, dette kernel, che potranno essere compilate a run-time ed eseguite in parallelo sull'hardware desiderato detto \textit{device}.
 
-La compilazione a run-time è necessaria per garantire la portabilità del codice su device diversi e avviene sulla piattaforma, detta host, che inizia l'esecuzione del programma attraverso le API (Application Programming Interface) messe a disposizione da OpenCL stesso.
+La compilazione a run-time è necessaria per garantire la portabilità del codice su device diversi e avviene sulla piattaforma, detta \textit{host}, che inizia l'esecuzione del programma attraverso le API (Application Programming Interface) messe a disposizione da OpenCL stesso.
 In fase di compilazione il codice OpenCL viene quindi tradotto in istruzioni native del device di destinazione attraverso un compilatore, rilasciato dalla casa di produzione dell'hardware, in grado di generare codice performante sul device a partire dal kernel fornito.
 
 Il fatto che OpenCL fornisca API comuni per tutte le piattaforme impedisce di ottimizzare il codice a basso livello, ma è un trade-off necessario per ottenere un'applicazione multi piattaforma.
@@ -16,13 +16,13 @@ La separazione e l'implementazione fisica dei compute unit dipendono dal device 
 
 In particolare, OpenCL, definisce un global work size e un local work size. \\
 Il global work size definisce il numero di istanze del kernel da eseguire, ogni istanza è detta work-item.
-Il local work size definisce invece quanti work-item raggruppare in un work-group. Ogni work-item dello stesso work-group verrà eseguito sulla stessa compute unit.
+Il local work size definisce invece quanti work-item raggruppare in un work-group. Tutti i work-item dello stesso work-group verranno eseguiti contemporaneamente sulla stessa compute unit.
 
 \section{Suddivisione della memoria in OpenCL}
 %OpenCL deve comunicare sia con la memoria host che con quella device.
 %L'astrazione fornita da OpenCL 
 
-OpenCL ha bisogno di manipolare, oltre alla memoria host che viene gestita nel modo classico attraverso il linguaggio C o C++, anche la memoria device. 
+OpenCL ha bisogno di manipolare, oltre alla memoria host che viene gestita nel modo classico attraverso il linguaggio C o C++, anche la memoria device a cui accedono i kernel. 
 Per fare questo fornisce un'astrazione con tre classi di memoria:
 
 \begin{itemize}
@@ -31,7 +31,7 @@ Per fare questo fornisce un'astrazione con tre classi di memoria:
 	\item Private memory
 \end{itemize}
 
-La global memory è accessibile a tutti i work-item di tutti i work-group ma ha un tempo di risposta più basso delle altre.
+La global memory è accessibile a tutti i work-item di tutti i work-group ma ha un tempo di risposta più alto delle altre.
 La local memory è la memoria locale di un work-group ed è quindi accessibile solo a work-item dello stesso work-group.
 Infine la private memory è limitata al singolo work-item.
 
