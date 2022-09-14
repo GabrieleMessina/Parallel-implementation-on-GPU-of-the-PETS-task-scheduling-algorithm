@@ -138,6 +138,18 @@
       \verb https://registry.khronos.org/OpenCL/specs/opencl-1.2.pdf
       \endverb
     \endentry
+    \entry{cuda}{misc}{}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labeltitlesource}{title}
+      \field{title}{CUDA Zone - Library of Resources}
+      \verb{urlraw}
+      \verb https://developer.nvidia.com/cuda-zone
+      \endverb
+      \verb{url}
+      \verb https://developer.nvidia.com/cuda-zone
+      \endverb
+    \endentry
     \entry{parallelsort}{misc}{}
       \field{sortinit}{1}
       \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
@@ -148,6 +160,18 @@
       \endverb
       \verb{url}
       \verb https://github.com/Gram21/GPUSorting
+      \endverb
+    \endentry
+    \entry{codice}{misc}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{Codice sorgente integrale}
+      \verb{urlraw}
+      \verb https://github.com/GabrieleMessina/SchedulingWithGPU
+      \endverb
+      \verb{url}
+      \verb https://github.com/GabrieleMessina/SchedulingWithGPU
       \endverb
     \endentry
   \enddatalist

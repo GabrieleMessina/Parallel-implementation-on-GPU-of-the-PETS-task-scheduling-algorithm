@@ -1,3 +1,15 @@
 \chapter{Conclusioni}
+In definitiva, eseguire algoritmi di scheduling sulla GPU sembra una strada
+percorribile.
+Le prestazioni che è in grado di fornire una GPU su grandi
+quantità di dati da processare restano superiori a quelle delle CPU, soprattutto
+se si ottimizza il codice per le caratteristiche proprie delle schede video come,
+ad esempio, la vettorizzazione. 
+Inoltre, l’algoritmo implementato in queste pagine è stato notevolmente
+rallentato dal fatto che OpenCL non consente la sincronizzazione tra workgroup
+diversi, cosa che nell’eventualità di un’implementazione reale di scheduling su
+GPU potrebbe essere evitata lavorando ad un livello più basso di astrazione
+o, addirittura, sviluppando un sistema operativo con kernel in grado di sfruttare la scheda video a questo scopo.
 
-Inserire qui le conclusioni alla tesi.
+In futuro, si potrebbe parallelizzare anche l'ultima fase del processo, implementando un algoritmo in grado di gestire eventuali conflitti, riscontrati durante l'esecuzione del kernel, dovuti ad associazioni task-processore che si rivelano solo successivamente non ottimali. 
+Inoltre si potrebbe verificare se implementando l'algoritmo con CUDA si ottengono dei miglioramenti nelle prestazioni grazie alle API native.

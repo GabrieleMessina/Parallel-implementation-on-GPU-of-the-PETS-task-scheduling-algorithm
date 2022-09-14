@@ -1,4 +1,4 @@
-\chapter{Il framework OpenCL}
+\chapter{Il framework OpenCL}\label{capitolo2opencl}
 \vspace{4cm}
 OpenCL\cite{opencl} è uno standard open per lo sviluppo di programmi multi piattaforma eseguiti in parallelo che implementa un linguaggio, derivato dal C, con il quale è possibile scrivere delle funzioni (\textit{kernel}) che potranno essere compilate a run-time ed eseguite in parallelo sull'hardware desiderato (\textit{device}).
 
@@ -16,9 +16,9 @@ La separazione e l'implementazione fisica dei compute unit dipendono dal device 
 
 In particolare, OpenCL definisce un global work size e un local work size.
 
-Il global work size definisce il numero di istanze del kernel da eseguire, ogni istanza è detta work-item.
+Il global work size indica il numero di istanze del kernel da eseguire, ogni istanza è detta work-item.
 
-Il local work size definisce invece quanti work-item raggruppare in un work-group. Tutti i work-item dello stesso work-group verranno eseguiti contemporaneamente sulla stessa compute unit.
+Il local work size determina invece quanti work-item raggruppare in un work-group. Tutti i work-item dello stesso work-group verranno eseguiti contemporaneamente sulla stessa compute unit.
 
 \section{Suddivisione della memoria in OpenCL}
 %OpenCL deve comunicare sia con la memoria host che con quella device.
@@ -43,3 +43,9 @@ Data la natura parallela dell'esecuzione, l'accesso alla memoria deve essere fat
 OpenCL fornisce quindi delle istruzioni, dette \textit{fence}, per la sincronizzazione dei work-item. Le \textit{fence} impediscono al work-item di proseguire alle istruzioni successive se prima tutti gli altri work-item del gruppo non sono arrivati alla stessa istruzione \textit{fence}.
 
 La sincronizzazione è, in via teorica, possibile anche tra work-item di diversi work-group, tuttavia OpenCL non garantisce che tutti i work-group siano in esecuzione nello stesso momento, e questo, in combinazione con le istruzioni \textit{fence}, potrebbe portare a dei deadlock.
+
+\section{Alternative ad OpenCL}
+Una possibile alternativa a OpenCL è CUDA\cite{cuda}. CUDA è una piattaforma per lo sviluppo e l'esecuzione parallela di software ideata e mantenuta da NVIDIA.
+A differenza di OpenCL, CUDA ha un approccio \textit{single source}, i kernel vengono quindi implementati insieme al codice host attraverso delle notazioni aggiunte da NVIDIA ad alcuni dei linguaggi più diffusi. Questo permette a CUDA di gestire più facilmente il trasferimento di dati tra host e device anche per via del fatto che CUDA fornisce delle API di basso livello per l'accesso alle funzionalità native dell'hardware proprietario NVIDIA.
+
+Tuttavia lo sviluppo con CUDA ha degli aspetti negativi, fra tutti l'impossibilità di eseguire il codice su hardware non NVIDIA ma anche il fatto che sia un software proprietario e non uno standard open come OpenCL, caratteristica che potrebbe portare al mancato supporto, ad esempio, di alcuni sistemi operativi.

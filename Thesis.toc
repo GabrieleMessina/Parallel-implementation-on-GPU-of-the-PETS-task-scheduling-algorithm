@@ -25,42 +25,42 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {2.2}Suddivisione della memoria in OpenCL}{5}{section.2.2}%
 \defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.3}Alternative ad OpenCL}{6}{section.2.3}%
+\defcounter {refsection}{0}\relax 
 \contentsline {chapter}{\numberline {3}L'algoritmo PETS}{7}{chapter.3}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {3.1}Ordinamento sulla base del livello}{8}{section.3.1}%
+\contentsline {section}{\numberline {3.1}Ordinamento sulla base del livello}{7}{section.3.1}%
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {3.2}Calcolo della priorità}{8}{section.3.2}%
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {3.3}Selezione del processore}{8}{section.3.3}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {3.4}Complessità computazionale}{9}{section.3.4}%
+\contentsline {chapter}{\numberline {4}L'implementazione in OpenCL}{9}{chapter.4}%
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {4}L'implementazione in OpenCL}{10}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Generatore dei task}{9}{section.4.1}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {4.1}Generatore dei task}{10}{section.4.1}%
-\defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {4.2}Struttura dati}{11}{section.4.2}%
+\contentsline {section}{\numberline {4.2}Strutture dati}{11}{section.4.2}%
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {4.3}Fasi dell'algoritmo}{12}{section.4.3}%
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.3.1}Ricerca degli entrypoint}{13}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.1}Ricerca degli entrypoint}{12}{subsection.4.3.1}%
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {4.3.2}Calcolo dei livelli e dei ranghi}{13}{subsection.4.3.2}%
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {4.3.3}Ordinamento dei task}{14}{subsection.4.3.3}%
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.3.4}Selezione del processore}{16}{subsection.4.3.4}%
+\contentsline {subsection}{\numberline {4.3.4}Selezione del processore}{15}{subsection.4.3.4}%
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {4.4}Ottimizzazioni}{18}{section.4.4}%
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.4.1}Costo computazionale}{20}{subsection.4.4.1}%
+\contentsline {section}{\numberline {4.5}Costo computazionale}{22}{section.4.5}%
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {5}Risultati}{21}{chapter.5}%
+\contentsline {chapter}{\numberline {5}Risultati}{23}{chapter.5}%
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {5.0.1}Confronto tra prestazioni attese e prestazioni effettive}{21}{subsection.5.0.1}%
+\contentsline {section}{\numberline {5.1}Confronto tra prestazioni attese e prestazioni effettive}{25}{section.5.1}%
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {5.0.2}Andamento delle prestazioni}{22}{subsection.5.0.2}%
+\contentsline {section}{\numberline {5.2}Andamento delle prestazioni}{26}{section.5.2}%
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{Conclusioni}{0}{chapter*.4}%
+\contentsline {chapter}{Conclusioni}{28}{chapter*.6}%
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{Bibliografia}{1}{chapter*.5}%
+\contentsline {chapter}{Bibliografia}{29}{chapter*.7}%

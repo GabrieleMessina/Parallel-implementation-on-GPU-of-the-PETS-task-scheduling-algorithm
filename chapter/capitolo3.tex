@@ -1,4 +1,4 @@
-\chapter{L'algoritmo PETS}
+\chapter{L'algoritmo PETS}\label{capitolo3pets}
 \vspace{4cm}
 L'algoritmo Performance Effective Task Scheduling (PETS), presentato in \citetitle{ilavarasan2007low}\cite{ilavarasan2007low}, è un'euristica che si propone di ottenere risultati migliori rispetto alle controparti già presenti in letteratura (vedi HEFT\cite{993206} e CPOP\cite{993206}) in termini di costo computazionale e ottimizzazione generale delle risorse.
 \\
@@ -8,8 +8,6 @@ L'algoritmo è diviso in tre fasi:
 	\item Calcolo delle priorità
 	\item Selezione del processore 
 \end{itemize}
-
-\newpage
 
 \section{Ordinamento sulla base del livello}
 In questa fase si attraversa la DAG attraverso una ricerca in ampiezza (BFS), partendo quindi dal task con tempo di inizio minore (o entry-task), con l'obiettivo di raggruppare nello stesso livello task che fra loro sono indipendenti e che quindi possono essere eseguiti in parallelo.
@@ -50,14 +48,3 @@ Dove $EFT$ è definito come segue:
 \begin{equation}\label{EFT}
 	EFT(v\ped{i},p\ped{j}) = W\ped{i,j} + EST(v\ped{i},p\ped{j})
 \end{equation}
-
-
-\section{Complessità computazionale}
-La visita in ampiezza ha complessità $O(v + e)$ se si implementa la DAG attraverso liste di adiacenza.
-\\
-L'ordinamento dei task ha complessità $O(\log(v))$ se si implementa una coda di priorità attraverso un heap binario.
-\\
-Infine per ogni task in coda si calcola il costo su ogni processore, quindi la complessità computazionale dell'algoritmo PETS è \( O(e)(p + \log{v}) \).
-%TODO: controllare questa analisi
-\\
-Con $v$ numero di task, $e$ numero di archi e $p$ numero di processori.
