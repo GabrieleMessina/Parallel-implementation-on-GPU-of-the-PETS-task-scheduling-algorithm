@@ -1,0 +1,45 @@
+\chapter{Il framework OpenCL}
+\vspace{4cm}
+OpenCL\cite{opencl} è uno standard open per lo sviluppo di programmi multi piattaforma eseguiti in parallelo che implementa un linguaggio, derivato dal C, con il quale è possibile scrivere delle funzioni (\textit{kernel}) che potranno essere compilate a run-time ed eseguite in parallelo sull'hardware desiderato (\textit{device}).
+
+La compilazione a run-time è necessaria per garantire la portabilità del codice su device diversi e avviene sulla piattaforma, detta \textit{host}, che inizia l'esecuzione del programma attraverso le API (Application Programming Interface) messe a disposizione da OpenCL stesso.
+In fase di compilazione il codice OpenCL viene quindi tradotto in istruzioni native del device di destinazione attraverso un compilatore, rilasciato dalla casa di produzione dell'hardware, in grado di generare codice performante sul device a partire dal kernel fornito.
+
+Questo approccio è comunemente detto \textit{separate source} proprio perché mantiene separato il codice host da quello device, permettendo di gestire il primo attraverso qualsiasi linguaggio purché questo sia supportato da OpenCL o dalla community.
+
+\section{Esecuzione di un programma OpenCL}
+OpenCL fa uso di una coda dei comandi che permette all'host di inviare kernel e relativi dati al device per essere eseguiti.
+
+Dopo essere stati aggiunti alla coda, i kernel vengono assegnati alle varie compute unit del device, unità di elaborazione che eseguono lo stesso codice in parallelo secondo il paradigma di programmazione \textit{stream processing}. I dati di input dei kernel vengono quindi gestiti come un flusso di informazioni su cui, per ogni elemento, è necessario eseguire una sequenza di operazioni.
+ 
+La separazione e l'implementazione fisica dei compute unit dipendono dal device scelto, di conseguenza OpenCL offre delle API comuni che permettono di eseguire le operazioni presenti sulla maggior parte dell'hardware. Questo impedisce di ottimizzare il codice a basso livello ma permette un risparmio di tempo notevole in fase di sviluppo se si vuole eseguire il codice su più device.
+
+In particolare, OpenCL definisce un global work size e un local work size.
+
+Il global work size definisce il numero di istanze del kernel da eseguire, ogni istanza è detta work-item.
+
+Il local work size definisce invece quanti work-item raggruppare in un work-group. Tutti i work-item dello stesso work-group verranno eseguiti contemporaneamente sulla stessa compute unit.
+
+\section{Suddivisione della memoria in OpenCL}
+%OpenCL deve comunicare sia con la memoria host che con quella device.
+%L'astrazione fornita da OpenCL 
+
+OpenCL ha bisogno di manipolare sia la memoria host, che viene gestita nel modo classico attraverso il linguaggio C o C++, sia la memoria device a cui accedono i kernel. 
+Per fare questo fornisce un'astrazione con tre classi di memoria:
+
+\begin{itemize}
+	\item Global memory
+	\item Local memory
+	\item Private memory
+\end{itemize}
+
+La global memory è accessibile a tutti i work-item di tutti i work-group ma ha un tempo di risposta più alto delle altre.
+
+La local memory è la memoria locale di un work-group ed è quindi accessibile solo a work-item dello stesso work-group.
+
+Infine la private memory è limitata al singolo work-item.
+
+Data la natura parallela dell'esecuzione, l'accesso alla memoria deve essere fatto con attenzione per evitare problemi di race condition o di inconsistenza dei dati.
+OpenCL fornisce quindi delle istruzioni, dette \textit{fence}, per la sincronizzazione dei work-item. Le \textit{fence} impediscono al work-item di proseguire alle istruzioni successive se prima tutti gli altri work-item del gruppo non sono arrivati alla stessa istruzione \textit{fence}.
+
+La sincronizzazione è, in via teorica, possibile anche tra work-item di diversi work-group, tuttavia OpenCL non garantisce che tutti i work-group siano in esecuzione nello stesso momento, e questo, in combinazione con le istruzioni \textit{fence}, potrebbe portare a dei deadlock.

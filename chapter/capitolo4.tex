@@ -1,0 +1,307 @@
+\chapter{L'implementazione in OpenCL}
+\vspace{4cm}
+
+
+\section{Generatore dei task}
+Al fine di poter comparare i risultati ottenuti in\cite{ilavarasan2007low} con i nostri, si è deciso di implementare un generatore di task con caratteristiche simili a quelle del paper, che fornisca in output una varietà di DAG su cui poter eseguire i test.
+\\
+Il generatore dipende da diversi parametri di input che sono:
+\begin{itemize}
+	\item{Number of tasks in the graph ($v$)}
+	\item{Out degree ($\beta$)}
+	\item{Shape parameter of a graph ($\alpha$)}
+	\item{Communication to Computation Ratio (CCR)}
+	\item{Range percentage of computation cost ($\eta$)}
+\end{itemize}
+
+In particolare, l'altezza del grafo è generata randomicamente a partire da una distribuzione uniforme con valore medio pari a $\frac{\sqrt{v}}{\alpha}$, mentre l'ampiezza viene calcolata per ogni livello a partire da una distribuzione uniforme con valore medio pari a $\sqrt{v}\times\alpha$.
+In questo modo si può generare un grafo più o meno denso semplicemente modificando il parametro $\alpha$.
+
+%TODO: Aggiungere range di valori usati per i test.
+
+Il parametro CCR indica quanto i task sono impattanti dal punto di vista computazionale rispetto alla mole di dati che analizzano, se CCR è molto basso il costo computazionale è più alto rispetto alla quantità di dati trasmessi ai task successori pertanto l'applicazione può essere considerata ad alta intensità di calcolo, viceversa se CCR è alto l'applicazione trasmette molti dati tra i task ma non è molto pesante dal punto di vista computazionale.
+
+Inoltre il parametro $\eta$ indica il grado di eterogeneità del sistema, cioè se ci sono differenze significative tra le prestazioni dei processori. Se $\eta$ è alto i costi dei task sui processori variano molto di processore in processore, viceversa se $\eta$ basso tutti i processori completeranno lo stesso task in tempi uguali. 
+
+A partire da questo, il costo computazionale $W\ped{i,j}$ di ogni task $v\ped{i}$ su ogni processore $p\ped{j}$ è scelto randomicamente dall'intervallo $[W\ped{i}\times (1-\frac{\eta}{2}), W\ped{i}\times (1+\frac{\eta}{2})]$, dove $W\ped{i}$, costo medio della computazione del task $i$, è stato scelto casualmente da una distribuzione uniforme con estremi $0$ e $2 \times \text{Wdag}$, con Wdag costante del generatore che indica il costo medio di computazione dei task del grafo.
+
+Infine $\beta$ indica quanti archi uscenti avrà in media ogni nodo.
+
+\section{Struttura dati}
+Per mantenere in memoria le informazioni, riguardanti la rete, necessarie ad eseguire l'algoritmo si è usata una DAG o Direct Acyclic Graph, si tratta di un grafo orientato aciclico che permette di rappresentare le informazioni sulle dipendenze tra processi. Una dipendenza indica che un processo necessita di dati provenienti da un altro il quale deve necessariamente finire l'esecuzione prima che l'altro possa essere eseguito.
+In particolare si è implementata una DAG in cui i nodi rappresentano i processi e, gli archi, le dipendenze fra essi. Gli archi sono pesati e il peso indica il tempo necessario al trasferimento dei dati da un task ad un altro.
+
+L'elenco dei task è stato mantenuto in memoria attraverso un array monodimensionale che associa ad ogni task (attraverso un identificativo numerico) il suo costo medio di esecuzione sui processori.
+
+Per ragioni di ottimizzazione, invece che una singola matrice di adiacenza, sono state implementate tre matrici rettangolari, una che per ogni task tenesse traccia dei suoi predecessori, una speculare che tenesse traccia dei suoi successori e, infine, una che tenesse traccia dei pesi degli archi della prima matrice.
+
+In ogni matrice rettangolare gli indici delle colonne rappresentano i task mentre le righe gli eventuali archi. Il numero di colonne è quindi fisso, mentre il numero di righe dipende dal massimo numero di successori e predecessori riscontrati all'interno della struttura dati. Inoltre, nelle prime due matrici all'interno delle singole celle vengono memorizzati gli identificativi del nodo all'altro estremo dell'arco, per questo è stato necessario mantenere una terza matrice con i pesi delle connessioni.
+
+Questa scelta implementativa è stata fatta perché OpenCL non permette di implementare una lista di adiacenza sul device in quanto non è possibile allocare memoria dinamicamente all'interno dei kernel, né è possibile passare un'eventuale lista direttamente al device in quanto un puntatore ad un'area di memoria host non ha alcun senso per il device, a meno di eseguire un'operazione di mapping della memoria host su device che però diminuirebbe drasticamente le prestazioni.
+
+
+\section{Fasi dell'algoritmo}
+Al fine di implementare attraverso OpenCL una versione parallelizzata dell'algoritmo, sono state individuate 4 fasi:
+
+\begin{enumerate}
+	\item Ricerca degli entrypoint
+	\item Calcolo dei livelli e dei ranghi
+	\item Ordinamento dei task
+	\item Selezione del processore
+\end{enumerate}
+Per le prime tre fasi è stato implementato un kernel OpenCL da eseguire in parallelo su GPU, mentre l'ultimo step viene eseguito serialmente.
+
+\subsection{Ricerca degli entrypoint}
+In questa fase si ricercano i task che non hanno nessun predecessore, questi verranno assegnati al livello 0 e da loro partirà una ricerca in ampiezza che calcolerà le metriche dei singoli task.
+
+La ricerca di questi task è particolarmente efficiente in quanto basta controllare che la prima riga sia nulla, in questo caso infatti il task non avrà predecessori che altrimenti avrebbero riempito la colonna a partire dalla prima riga.
+
+\begin{lstlisting}[language=C++, caption={Find entrypoints kernel},captionpos=b]
+	kernel void entry_discover(const int n_nodes, global edge_t* restrict edges, volatile global int* n_entries, global int* entrypoints)
+	{
+		int current_node_index = get_global_id(0);
+		
+		int matrixToArrayIndex = matrix_to_array_indexes(0, current_node_index, n_nodes);
+		
+		if (edges[matrixToArrayIndex] <= -1)
+		entrypoints[current_node_index] = 1;
+	}
+\end{lstlisting}
+
+\subsection{Calcolo dei livelli e dei ranghi}
+Per ogni task si analizzano i suoi predecessori in modo da calcolare la metrica del nodo a partire dal parent che fornisce il rank più alto.
+Il grado è calcolato a partire da tre proprietà:
+\begin{itemize}
+	\item Average Computation Cost (ACC): costo medio di computazione del task sui processori.
+	\item Data Transfer Cost (DTC): quantità di dati da trasferire dal task a tutti i suoi successori.
+	\item Rank of Predecessor Task (RPT): il grado più alto fra i predecessori del task.
+\end{itemize}
+Da cui:
+\begin{equation}\label{Grado}
+	rank(v\ped{i}) = round(ACC(v\ped{i}) + DTC(v\ped{i}) + RPT(v\ped{i}))
+\end{equation}
+Dopo aver calcolato il grado del nodo, si aggiungono tutti i suoi figli alla coda, in modo da essere analizzati al prossimo ciclo del kernel, che continuerà ad essere eseguito fino a quando verranno analizzati tutti i nodi.
+
+\begin{lstlisting}[language=C++, caption={Compute metrics kernel},captionpos=b]
+	kernel void compute_metrics(global int* restrict nodes, global int* queue_, global int* next_queue_, global edge_t* restrict edges, global edge_t* restrict edges_reverse, global edge_t* restrict edges_weights, volatile global metrics_tt* metriche, const int max_adj_dept, const int max_adj_reverse_dept, const int n_nodes)
+	{
+		int current_node_index = get_global_id(0);
+		
+		[...] //omissis of various security checks
+		
+		int ACC = nodes[current_node_index];
+		for (int parentAdjIndex = 0; parentAdjIndex < max_adj_dept; j++) {
+			matrixToArrayIndex = matrix_to_array_indexes(parentAdjIndex, current_node_index, n_nodes);
+			int DTC = sum_all_in_column(edges_weights, node_index, n_nodes);
+			int parent_index = edges[matrixToArrayIndex];
+			if (parent_index >= 0){
+				int RPT = metriche[parent_index].x;
+				int weight_with_this_parent = DTC + RPT + ACC;
+				int level_with_this_parent = metriche[parent_index].y + 1;
+				metrics_with_this_parent = (int3)(weight_with_this_parent, level_with_this_parent, current_node_index);
+				if (metrics_with_this_parent > metriche[current_node_index])
+					metriche[current_node_index] = metrics_with_this_parent;
+			}
+		}
+	
+		for (int j = 0; j < max_adj_reverse_dept; j++) {
+			int matrixToArrayIndex = matrix_to_array_indexes(j, i, n_nodes);
+			int child_index = edges_reverse[matrixToArrayIndex];
+			if (child_index >= 0)
+				atomic_inc(&next_queue_[child_index]);	
+		}
+	}
+\end{lstlisting}
+
+\subsection{Ordinamento dei task}
+Una volta calcolato il grado di ogni task è possibile ordinare quest'ultimi in modo che la priorità sia data ai task di livello più basso e, all'interno di ogni livello, al processo con grado maggiore.
+In caso di parità il task con ACC minore riceve una priorità più alta.
+
+Per l'ordinamento è stato implementato un kernel che applicasse l'algoritmo parallelo Bitonic mergesort. L'implementazione è stata adeguata al codice a partire da quella presente in \cite{parallelsort}.
+
+In questo caso il kernel viene lanciato diverse volte dall'host, ogni volta con parametri \textit{stride} e \textit{blocksize} diversi.
+
+\begin{lstlisting}[language=C++, caption={Bitonic mergesort host code},captionpos=b]
+	for (unsigned int blocksize = limit; blocksize <= metrics_len; blocksize <<= 1) {
+		for (unsigned int stride = blocksize / 2; stride > 0; stride >>= 1) {
+			if (stride >= limit) {
+				sort_task_evts_end = run_bitonic_sort_kernel(metrics_array_len, stride, blocksize);
+			}
+		}
+	}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C++, caption={Bitonic mergesort kernel for metrics array, source: \url{https://github.com/Gram21/GPUSorting}},captionpos=b]
+	__kernel void bitonic_mergesort(const global int3* inArray, global int3* outArray, const uint size, const uint blocksize, const uint stride)
+	{
+		uint gid = get_global_id(0);
+		uint clampedGID = gid & (size / 2 - 1);
+		
+		uint index = 2 * clampedGID - (clampedGID & (stride - 1));
+		char dir = (clampedGID & (blocksize / 2)) == 0;
+		
+		int3 left = data[index];
+		int3 right = data[index + stride];
+		
+		sort(&left, &right, dir);
+		
+		data[index] = left;
+		data[index + stride] = right;
+	}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C++, caption={Sort utilities},captionpos=b]
+	inline void sort(int3 *a, int3 *b, int dir) {
+		if (gt(*a, *b) == dir) swap(a, b);
+	}
+	inline int gt (int3 V1, int3 V2){s
+		return compare(V1, V2) > 0;
+	}
+	int compare (int3 V1, int3 V2){
+		if(V1.y == V2.y){
+			return (V1.x < V2.x) ? 1 : -1;
+		}
+		return (V1.y > V2.y) ? 1 : -1;
+	}
+\end{lstlisting}
+
+\subsection{Selezione del processore}
+A questo punto si scandiscono i task sulla base della loro priorità e, ogni task, viene associato al processore migliore, cioè quello che fornisce $EFT$ (Earliest Finish Time) minore. 
+Dove $EFT$ è definita come segue:
+\begin{displaymath}
+	avail[j] := \text{prossimo istante in cui il processore $j$ è libero}
+\end{displaymath}
+\begin{displaymath}
+	C\ped{t,i} := \text{tempo necessario al trasferimento dei dati tra i task $t$ e $i$} 
+\end{displaymath}
+\begin{displaymath}
+	W\ped{i,j} := \text{costo computazionale del processo $i$ sul processore $j$} 
+\end{displaymath}
+Da cui:
+\begin{equation}\label{EST}
+	EST(v\ped{i},p\ped{j}) = max(avail[j], max(AFT(v\ped{t}) + C\ped{t,i} : V\ped{t} \in pred(v\ped{i})))
+\end{equation}
+\begin{equation}\label{EFT}
+	EFT(v\ped{i},p\ped{j}) = W\ped{i,j} + EST(v\ped{i},p\ped{j})
+\end{equation}
+
+A causa del fatto che il calcolo di queste metriche non dipende solo dai predecessori ma anche del prossimo slot libero nei processori, si è deciso di non implementare una versione parallela dell'ultima fase dell'algoritmo, quindi viene di seguito riportato il codice C++ dell'implementazione seriale.
+
+%TODO: refactor della funzione di scelta del processore, dividere in funzioni più piccole da riportare poi in listing separati.
+
+\newpage
+\begin{lstlisting}[language=C++, caption={Algoritmo di selezione del processore},captionpos=b]
+	void ScheduleTasksOnProcessors(Graph<graphT> DAG, n_nodes)
+	{
+		cl_int3* task_processor_assignment = new cl_int3[n_nodes];
+		int* processorsNextSlotStart = new int[DAG->number_of_processors];
+		for (int i = 0; i < metrics_len; i++)
+		{
+			int current_node = ordered_metrics[i].z; 
+			int predecessor_with_max_aft, max_aft_of_predecessors, processor_for_max_aft_predecessor, weight_for_max_aft_predecessor;
+			
+			for (int j = 0; j < DAG->max_parents_for_nodes; j++)
+			{
+				int currentParent = DAG->edges[matrix_to_array_indexes(j, current_node, DAG->len)];
+				if (currentParent > -1) {
+					int edge_weight_with_parent = DAG->predecessors[matrix_to_array_indexes(j, current_node, DAG->len)];
+					int parentEFT = task_processor_assignment[currentParent].z + edge_weight_with_parent;
+					if (parentEFT > max_aft_of_predecessors) {
+						max_aft_of_predecessors = parentEFT;
+						predecessor_with_max_aft = currentParent;
+						processor_for_max_aft_predecessor = task_processor_assignment[currentParent].x;
+						weight_for_max_aft_predecessor = edge_weight_with_parent;
+					}
+				}
+			}
+			
+			int eft_min = INT_MAX;
+			int cost_of_predecessors_in_different_processors, remaining_transfer_cost;
+			for (int j = 0; j < DAG->max_parents_for_nodes; j++)
+			{
+				int currentParent = DAG->edges[matrix_to_array_indexes(j, current_node, DAG->len)];
+				if (currentParent > -1 && currentParent != predecessor_with_max_aft) {
+					cost_of_predecessors_in_different_processors = max(
+						cost_of_predecessors_in_different_processors,
+						task_processor_assignment[currentParent].z + DAG->predecessors[matrix_to_array_indexes(j, current_node, DAG->len)]
+					);
+				}
+			}
+			
+			for (int processor = 0; processor < DAG->number_of_processors; processor++) {
+				int cost_of_predecessor_in_same_processor = 0;
+				int cost_on_processor = DAG->costs[matrix_to_array_indexes(current_node, processor, DAG->number_of_processors)];
+				if (processor_for_max_aft_predecessor == processor) {
+					cost_of_predecessor_in_same_processor = weight_for_max_aft_predecessor;
+				}
+				remaining_transfer_cost = max(max_aft_of_predecessors - cost_of_predecessor_in_same_processor, cost_of_predecessors_in_different_processors);
+
+				int est = max(processorsNextSlotStart[processor], remaining_transfer_cost);
+				int eft = est + cost_on_processor;
+				if (eft < eft_min) {
+					eft_min = eft;
+					task_processor_assignment[current_node] = cl_int3{ processor, est, eft };
+				}
+			}
+			
+			processorsNextSlotStart[task_processor_assignment[current_node].x] = task_processor_assignment[current_node].z;
+		}
+	}
+\end{lstlisting}
+\section{Ottimizzazioni}
+Nel corso dello sviluppo sono stati tentati diversi approcci d'ottimizzazione, inizialmente la DAG era stata implementata sfruttando una classica matrice di adiacenza, ma i tempi necessari alla scoperta dei successori e predecessori di ogni nodo erano troppo elevati, si è allora tentato di ridurre i tempi sfruttando la matrice trasposta in modo da sfruttare al meglio la località dei dati e quindi gli eventuali cache hit, ma anche questo approccio non ha migliorato le prestazioni quanto si ci aspettava.
+Si è allora passati alle matrici rettangolari e, inoltre, si è implementata una versione vettorizzata del kernel \textit{compute\_metrics} che analizzasse n-uple di nodi invece che singoli elementi.
+Queste due modifiche hanno reso i tempi di runtime dell'implementazione parallela confrontabili con quelli presenti nel paper\cite{ilavarasan2007low} che, tuttavia, analizza solo dataset di piccola entità.
+Per dataset di molti nodi invece, come vedremo nel prossimo capitolo, si nota un vantaggio considerevole della GPU rispetto alla CPU in termini di prestazioni.
+
+\newpage
+
+\begin{lstlisting}[language=C++, caption={Vectorized compute metrics kernel},captionpos=b]
+kernel bool compute_metrics_vectorized8(const global int* restrict nodes, global int8* restrict queue_, const global edge_t* restrict edges, const global edge_t* restrict edges_reverse, const global edge_t* restrict edges_weights, global int3* metriche, const int max_adj_dept, const int max_adj_reverse_dept, const int n_nodes)
+{
+	int work_item = get_global_id(0);
+	
+	[...] //omissis of various security checks
+
+	#pragma unroll
+	for (int i = 0; i < 8; i++) {
+		int node_index = work_item * 8 + i;
+		int ACC = nodes[node_index];
+		int DTC = sum_all_in_column(edges_weights, node_index, n_nodes);
+
+		for (int parent = 0; parent < max_adj_dept; j++) {
+			int matrixToArrayIndex = matrix_to_array_indexes(parent, node_index, n_nodes);
+			int parentIndex = edges[matrixToArrayIndex];
+			
+			if (parentIndex >= 0) {
+				int RPT = metriche[parent_index].x;
+				int weight_with_this_parent = DTC + RPT + ACC;
+				int level_with_this_parent = metriche[parentIndex].y + 1;
+				int3 metrics_with_this_parent = (int3)(weight_with_this_parent, level_with_this_parent, node_index);
+				if (metrics_with_this_parent > metriche[node_index])
+					metriche[node_index] = metrics_with_this_parent;
+			}
+		}
+
+		for (int child = 0; child < max_adj_reverse_dept; j++) {
+			int node_index = work_item * 8 + i;
+			int matrixToArrayIndex = matrix_to_array_indexes(child, node_index, n_nodes);
+
+			int childIndex = edges_reverse[matrixToArrayIndex];
+			if (childIndex >= 0) {
+				int globalIndexStart = (int)(floor(j / 8.0));
+				global int* next_nodes = &(queue_[globalIndexStart]);
+				atomic_dec(&(next_nodes[childIndex - globalIndexStart * 8]));
+				something_changed = true;
+			}
+		}
+	}
+	return something_changed;
+}
+\end{lstlisting}
+
+
+\subsection{Costo computazionale}
+La complessità di questa implementazione è $O(n)$ per la ricerca degli entrypoint, $O(n \cdot max(max\_adj\_dept, max\_adj\_reverse\_dept))$ per il calcolo delle metriche e $O(n\ log\ n)$ per l'ordinamento, dove $n$ è il numero di nodi mentre $max\_adj\_dept$ e $max\_adj\_reverse\_dept$ sono rispettivamente il massimo numero di successori e predecessori che un nodo può avere.
+
+In definitiva, l'algoritmo ha complessità $O(n^{2})$ nel caso in cui il grafo sia denso, e $O(n \cdot log\ n)$ nel caso medio in cui $max(max\_adj\_dept, max\_adj\_reverse\_dept) \ll n$.

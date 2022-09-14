@@ -126,6 +126,30 @@
       \verb 10.1109/71.993206
       \endverb
     \endentry
+    \entry{opencl}{misc}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{The OpenCL Specification}
+      \verb{urlraw}
+      \verb https://registry.khronos.org/OpenCL/specs/opencl-1.2.pdf
+      \endverb
+      \verb{url}
+      \verb https://registry.khronos.org/OpenCL/specs/opencl-1.2.pdf
+      \endverb
+    \endentry
+    \entry{parallelsort}{misc}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{GPU Sorting Algorithms in OpenCL}
+      \verb{urlraw}
+      \verb https://github.com/Gram21/GPUSorting
+      \endverb
+      \verb{url}
+      \verb https://github.com/Gram21/GPUSorting
+      \endverb
+    \endentry
   \enddatalist
 \endrefsection
 \endinput

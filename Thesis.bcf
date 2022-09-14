@@ -2350,13 +2350,15 @@
     <bcf:citekey order="4">ilavarasan2007low</bcf:citekey>
     <bcf:citekey order="5">993206</bcf:citekey>
     <bcf:citekey order="6">993206</bcf:citekey>
-    <bcf:citekey order="7">ilavarasan2007low</bcf:citekey>
-    <bcf:citekey order="8">ilavarasan2007low</bcf:citekey>
+    <bcf:citekey order="7">opencl</bcf:citekey>
+    <bcf:citekey order="8">opencl</bcf:citekey>
     <bcf:citekey order="9">ilavarasan2007low</bcf:citekey>
-    <bcf:citekey order="10">993206</bcf:citekey>
+    <bcf:citekey order="10">ilavarasan2007low</bcf:citekey>
     <bcf:citekey order="11">993206</bcf:citekey>
-    <bcf:citekey order="12">ilavarasan2007low</bcf:citekey>
+    <bcf:citekey order="12">993206</bcf:citekey>
     <bcf:citekey order="13">ilavarasan2007low</bcf:citekey>
+    <bcf:citekey order="14">parallelsort</bcf:citekey>
+    <bcf:citekey order="15">ilavarasan2007low</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

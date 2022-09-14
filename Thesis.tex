@@ -1,6 +1,8 @@
 \documentclass[12pt,oneside,a4paper,PisaPhdThesis]{PhdThesis}
 \usepackage[centertags]{amsmath}
+\usepackage{framed}
 \usepackage[italian]{babel}
+\usepackage[font=small,labelfont=bf,tableposition=top]{caption}
 \usepackage{graphics}
 \usepackage{graphicx}
 \usepackage{color}
@@ -20,6 +22,7 @@
 
 %Necessari per blocchi di codice
 \usepackage{listings}    
+\usepackage{courier}
 \usepackage[dvipsnames]{xcolor}      
 \definecolor{color1}{HTML}{4B30FF}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -47,7 +50,17 @@
 	language=C++,
 	backgroundcolor=\color{black!5}, % set backgroundcolor
 	basicstyle=\footnotesize,% basic font setting
+	numbers=left,           
+	numberstyle=\tiny,       
+	numbersep=5pt, 
+	xleftmargin=17pt,
+	framexleftmargin=17pt,
+	framexrightmargin=5pt,
+	framexbottommargin=4pt,
+	framextopmargin=4pt
 }
+\addto\captionsitalian{%
+	\renewcommand{\lstlistingname}{Codice}}
 %END - Necessari per blocchi di codice
 
 %\usepackage{glossaries} 
@@ -83,51 +96,43 @@
 \selectlanguage{italian}
 % Le segueti informazioni devono essere modificate dallo studente
 \title {Implementazione parallela su GPU dell'algoritmo di task scheduling PETS}
-%\begin{large}Qui \`e Possibile Inserire un Sottotitolo\end{large} %da inserire dentro il tag title
+%%\begin{large}Qui \`e Possibile Inserire un Sottotitolo\end{large} %da inserire dentro il tag title
 \author{Gabriele Messina}
-
 \date{Anno Accademico 2021/22}
+\input{chapter/frontespizio}
 
 \chaptertitlestyle{serifbig}
 \pagestyle{serif}
-\maketitle
+\include{introduzione}
+%\maketitle
+\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
+\tableofcontents
+\addtocontents{toc}{\protect\setcounter{tocdepth}{3}}
 
 \begin{frontmatter}
-
 %  inserire di sequito la dedica, altrimenti commentare tutte le righe inserendo un simbolo davanti a ciascuna riga %
 %\begin{dedication}
 %    in questo punto del testo\\
 %    \`e possibile inserire una dedica.
 %\end{dedication}
-
 \setlinespacing{1.4}
 \pagenumbering{roman}
-
-
-% questo comando inserisce l'indice dei capitoli
-\tableofcontents
-
 \pagenumbering{arabic} \setcounter{page}{1}
-% il file introduzione.tex contiene l'abstract in italiano e la sua traduzione nelle due lingue scelte
-\include{introduzione}
 \end{frontmatter}
 
 
 \setlinespacing{1.4}
-% I seguenti file rappresentano i capitoli della tesi.
-% Inserire o cancellare le righe per aggiungere o eliminare dei capitoli alla tesi.
-\include{capitolo1}
-\include{capitolo2}
-\include{capitolo3}
-\include{capitolo4}
-\include{capitolo5}
+\include{chapter/capitolo1}
+\include{chapter/capitolo2}
+\include{chapter/capitolo3}
+\include{chapter/capitolo4}
+\include{chapter/capitolo5}
 
-%\include{conclusioni}
+
 \begin{frontmatter}
 \pagenumbering{arabic} 
 \setcounter{page}{0}
-\include{conclusioni}
-%\include{bibliografia}
+\include{chapter/conclusioni}
 \printbibliography[heading=bibintoc]
 \end{frontmatter}
 \end{document}
