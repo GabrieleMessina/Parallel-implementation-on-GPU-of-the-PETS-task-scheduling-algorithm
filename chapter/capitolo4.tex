@@ -45,7 +45,7 @@ Per ragioni di ottimizzazione, invece che una singola matrice di adiacenza, sono
 
 In ogni matrice rettangolare gli indici delle colonne rappresentano i task mentre le righe gli eventuali archi. Il numero di colonne è quindi fisso, mentre il numero di righe dipende dal massimo numero di successori e predecessori riscontrati all'interno della struttura dati. Inoltre, nelle prime due matrici all'interno delle singole celle vengono memorizzati gli identificativi del nodo all'altro estremo dell'arco, per questo è stato necessario mantenere una terza matrice con i pesi delle connessioni.
 
-Questa scelta implementativa è stata fatta perché OpenCL non permette di implementare una lista di adiacenza sul device in quanto non è possibile allocare memoria dinamicamente all'interno dei kernel, né è possibile passare direttamente il puntatore ad un'eventuale lista in quanto il puntatore ad un'area di memoria host non avrebbe alcun senso per il device, a meno di eseguire un'operazione di mapping della memoria host su device che però diminuirebbe drasticamente le prestazioni.
+Questa scelta è stata fatta perché OpenCL non permette di implementare una lista di adiacenza sul device in quanto non è possibile allocare memoria dinamicamente all'interno dei kernel, né è possibile passare direttamente il puntatore ad un'eventuale lista in quanto, il puntatore ad un'area di memoria host, non avrebbe alcun senso per il device. Inoltre l'accesso alla memoria da parte di work-item con indici consecutivi è estremamente più efficiente quando i dati a cui accedono sono adiacenti e allineati, perché in questo modo è possibile sfruttare tutta la banda passante del BUS di memoria. 
 
 
 \section{Fasi dell'algoritmo}
@@ -89,21 +89,82 @@ Da cui:
 	rank(v\ped{i}) = round(ACC(v\ped{i}) + DTC(v\ped{i}) + RPT(v\ped{i}))
 \end{equation}
 
-Dopo aver calcolato il grado del nodo, si aggiungono tutti i suoi figli alla coda, in modo da essere analizzati al prossimo ciclo del kernel se tutti i predecessori sono già stati analizzati. Questo è possibile perché la coda è stata inizializzata, per ogni nodo, con il numero di predecessori. In questo modo ogni predecessore decrementa il valore in coda di ogni suo figlio subito dopo essere stato analizzato. Ad ogni ciclo vengono quindi estratti dalla coda solo i nodi con valore nullo, cioè i nodi per cui il grado di tutti i parent è già stato calcolato. La procedura termina quando tutti i nodi della rete sono stati analizzati.\\
+Dopo aver calcolato il grado del nodo, si aggiungono tutti i suoi figli alla coda, in modo che possano essere analizzati al prossimo ciclo del kernel se tutti i predecessori sono già stati analizzati. Questo è possibile perché la coda è stata inizializzata, per ogni nodo, con il numero di predecessori. In questo modo ogni predecessore decrementa il valore in coda di ogni suo figlio subito dopo essere stato analizzato. Ad ogni ciclo vengono quindi estratti dalla coda solo i nodi con valore nullo, cioè i nodi per cui il grado di tutti i parent è già stato calcolato. La procedura termina quando tutti i nodi della rete sono stati analizzati. Per verificare la condizione di terminazione, è necessario che l'host esegua un kernel di riduzione che sia in grado di determinare se la coda è vuota o meno, questo passaggio è necessario perché, come abbiamo detto, OpenCL non assicura che tutti i workgroup siano in esecuzione contemporaneamente, per cui è necessario un orchestratore esterno che funga da sincronizzatore.
+
+\newpage
 
 \begin{lstlisting}[language=C++, caption={Codice host per il kernel compute\_metrics },captionpos=b]
 	void ComputeMetrics::run_kernel(Graph<int>* DAG)
 	{
 		metrics_t* metrics = new metrics_t[metrics_len]; 
-		for (int i = 0; i < metrics_len; i++) metrics[i] = metrics_t{ DAG->nodes[i],0,i};
+		for (int i = 0; i < metrics.length; i++) metrics[i] = metrics_t{ DAG->nodes[i],0,i};
 		
 		OCLBufferManager::SetMetrics(metrics);
 		
-		bool moreToProcess = false;
+		cl_uint n_compute_unit;
+		cl_int err = clGetDeviceInfo(OCLManager::device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(n_compute_unit), &n_compute_unit);
+		cl_uint local_work_size = 8;
+		cl_uint n_workgroup = n_compute_unit * local_work_size;
+		cl_mem out =  clCreateBuffer(OCLManager::context, CL_MEM_READ_WRITE, n_workgroup * sizeof(cl_int));
+		
+		bool more_to_process = false;
 		do{
-			run_compute_metrics_kernel();
-			moreToProcess = reduce(BufferManager.GetQueue());
-		} while (moreToProcess);
+			cl_event compute_metrics_evt_end = run_compute_metrics_kernel();
+			more_to_process = reduce(DAG->len, OCLBufferManager::GetQueue(), out, n_workgroup, local_work_size, 1, &compute_metrics_evt_end);
+		} while (more_to_process);
+	}
+
+	bool ComputeMetrics::reduce(int n_nodes, cl_mem to_reduce, cl_mem out, cl_int n_workgroup, cl_int local_work_size, cl_int num_events_to_wait, cl_event* to_wait) {		
+		cl_event reduction_evt[2];
+		reduction_evt[0] = run_reduce_kernel(n_nodes, n_workgroup, local_work_size, out, to_reduce, num_events_to_wait, to_wait);
+		reduction_evt[1] = run_reduce_kernel(n_workgroup, 1, local_work_size, out, out, 1, &reduction_evt[0]);
+		
+		cl_event read_evt;
+		int reduction_sum;
+		clEnqueueReadBuffer(OCLManager::queue, out, CL_TRUE, 0, sizeof(reduction_sum), &reduction_sum, 1, reduction_evt + 1, &read_evt);
+		
+		return reduction_sum > 0;
+	}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C++, caption={compute\_metrics reduction kernel},captionpos=b]
+	kernel void reduce_queue(int nquarts, global int * restrict out, global const int4 * restrict in,
+	local int * restrict lmem)
+	{
+		int i = get_global_id(0);
+		const int workitem = get_local_id(0);
+		
+		int acc = 0;
+		
+		const int4 zero_element = (int4)(0, 0, 0, 0);
+		
+		while (i < nquarts) {
+			const int i1 = i +   get_global_size(0);
+			const int i2 = i + 2*get_global_size(0);
+			const int i3 = i + 3*get_global_size(0);
+			
+			int4 r0 = in[i];
+			int4 r1 = (i1 < nquarts ? in[i1] : zero_element);
+			int4 r2 = (i2 < nquarts ? in[i2] : zero_element);
+			int4 r3 = (i3 < nquarts ? in[i3] : zero_element);
+			
+			int4 v = (r0 + r1) + (r2 + r3);
+			acc += (v.x + v.y) + (v.z + v.w);
+			i += 4*get_global_size(0);
+		}
+		lmem[workitem] = acc;
+		
+		int active = get_local_size(0)/2;
+		while (active > 0) {
+			barrier(CLK_LOCAL_MEM_FENCE);
+			if (workitem < active) {
+				acc += lmem[workitem+active];
+				lmem[workitem] = acc;
+			}
+			active /= 2;
+		}
+		if (workitem == 0)
+		out[get_group_id(0)] = acc;
 	}
 \end{lstlisting}
 
@@ -176,7 +237,7 @@ In questo caso il kernel viene lanciato diverse volte dall'host, ogni volta con 
 		data[index + stride] = right;
 	}
 \end{lstlisting}
-
+\newpage
 \begin{lstlisting}[language=C++, caption={Funzioni necessarie al kernel bitonic\_mergesort},captionpos=b]
 	inline void sort(int3 *a, int3 *b, int dir) {
 		if (gt(*a, *b) == dir) swap(a, b);
@@ -214,7 +275,7 @@ Da cui:
 
 A causa del fatto che il calcolo di queste metriche non dipende solo dai predecessori ma anche dal prossimo slot libero nei processori, si è deciso di non implementare una versione parallela dell'ultima fase dell'algoritmo. Riportiamo quindi il codice C++ dell'implementazione seriale.\\
 
-%TODO: refactor della funzione di scelta del processore, dividere in funzioni più piccole da riportare poi in listing separati.
+\newpage
 
 \begin{lstlisting}[language=C++, caption={Algoritmo di selezione del processore},captionpos=b]
 	void ScheduleTasksOnProcessors(Graph<graphT> DAG, int n_nodes)
@@ -265,6 +326,9 @@ A causa del fatto che il calcolo di queste metriche non dipende solo dai predece
 		}
 	}
 \end{lstlisting}
+
+\newpage
+
 \begin{lstlisting}[language=C++, caption={Funzione di gestione del costo di trasferimento dati tra task},captionpos=b]
 	inline void handle_transfert_cost_beetwen_tasks(Graph<graphT> DAG, int current_node, int predecessor_with_max_aft, int max_aft_of_predecessors, int processor_for_max_aft_predecessor, int weight_for_max_aft_predecessor) {
 		for (int j = 0; j < DAG->max_parents_for_nodes; j++)
@@ -279,7 +343,6 @@ A causa del fatto che il calcolo di queste metriche non dipende solo dai predece
 		}
 	}
 \end{lstlisting}
-\newpage
 \begin{lstlisting}[language=C++, caption={Funzione che gestisce lo scheduling del task su un processore},captionpos=b]
 	inline void assign_task_to_processor(Graph<graphT> DAG, int current_node, int max_aft_of_predecessors, int processor_for_max_aft_predecessor, int weight_for_max_aft_predecessor, int cost_of_predecessors_in_different_processors) {
 		int eft_min = INT_MAX;

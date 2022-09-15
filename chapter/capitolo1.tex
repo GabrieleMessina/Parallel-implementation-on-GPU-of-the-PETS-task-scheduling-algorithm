@@ -4,7 +4,7 @@ Un insieme di risorse interconnesse fra loro attraverso una rete ad alta velocit
 Un sistema eterogeneo richiede uno scheduling efficiente dei processi per poter garantire alte prestazioni all'utente finale.
 
 \section{Task scheduling}
-Il problema del task scheduling consiste nell'assegnare ogni processo di un'applicazione al processore che garantisce le prestazioni migliori in quel momento, cioè che, considerando il carico di lavoro su tutti i processori, il costo computazionale del processo e il costo del trasferimento di dati da eventuali processi genitori, porti a compimento il lavoro del processo nel minor tempo.
+Il problema del task scheduling consiste nell'assegnare ogni processo di un'applicazione al processore che garantisce le prestazioni migliori in quel momento, tale che, considerando il carico di lavoro su tutti i processori, il costo computazionale del processo e il costo del trasferimento di dati da eventuali processi genitori, porti a compimento il lavoro del processo nel minor tempo.
 La letteratura a riguardo è vasta e, soprattutto negli ultimi anni, si è concentrata anche sull'ottimizzazione dello scheduling in sistemi eterogenei dove si aggiunge un ulteriore livello di complessità dovuto al fatto che i processori hanno prestazioni diverse fra loro, caratteristica che influisce sul tempo di esecuzione di un processo e, quindi, sulla scelta del processore migliore a cui assegnarlo.
 
 Quando le caratteristiche dei processi si conoscono a priori, le informazioni sulla rete vengono rappresentate attraverso una struttura dati detta DAG o Direct Acyclic Graph, si tratta di un grafo orientato aciclico che permette di rappresentare le informazioni sulle dipendenze tra processi. Una dipendenza indica che un processo necessita di dati provenienti da un altro, il quale deve necessariamente finire l'esecuzione prima che l'altro possa essere eseguito.
@@ -15,13 +15,11 @@ Il problema del task scheduling è NP-completo\cite{ULLMAN1975384}, quindi una s
 In letteratura sono state quindi proposte molte euristiche che si propongono di trovare un buon compromesso tra tempo di scheduling e approssimazione della soluzione ottimale, uno di questi è l'algoritmo PETS\cite{ilavarasan2007low}.
 
 
-%~~~~~CARRELLATA DI FAMIGLIE DI EURISTICHE? (clustering, genetic, task duplication, ecc.)~~~~~~~
-
 \section{L'algoritmo PETS}
 L'algoritmo Performance Effective Task Scheduling (PETS), presentato in \citetitle{ilavarasan2007low}\cite{ilavarasan2007low}, è un'euristica nata per diminuire il costo computazionale dello scheduling su sistemi eterogenei rispetto ad altre euristiche presenti in letteratura come ad esempio HEFT\cite{993206} e CPOP\cite{993206}, in particolare PETS si propone di non calcolare il rango di un processo attraverso una procedura ricorsiva come fanno invece le controparti sopra citate.
 
 \section{Programmazione parallela}
-Tuttavia, pur scegliendo un'euristica molto efficiente, la soluzione richiede comunque tempi computazionali elevati, si ci è chiesto quindi se fosse possibile ridurre i tempi di scheduling parallelizzando l'algoritmo e sfruttando le capacità computazionali delle GPU (Graphics Processing Unit).
+Pur scegliendo un'euristica molto efficiente, la soluzione richiede comunque tempi computazionali elevati, ci si è chiesto quindi se fosse possibile ridurre i tempi di scheduling parallelizzando l'algoritmo e sfruttando le capacità computazionali delle GPU (Graphics Processing Unit).
 
 L'esecuzione parallela di un algoritmo consiste nel dividere il problema in sottoproblemi di entità minore e risolvere quest'ultimi contemporaneamente su diverse unità di elaborazione. In questo contesto le GPU giocano un ruolo fondamentale grazie alla loro capacità di processare grandi quantità di dati per ciclo di clock e alla gestione nativa di dati vettorizzati.
 

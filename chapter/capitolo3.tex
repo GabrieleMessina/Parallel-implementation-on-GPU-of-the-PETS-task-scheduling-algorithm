@@ -10,7 +10,7 @@ L'algoritmo è diviso in tre fasi:
 \end{itemize}
 
 \section{Ordinamento sulla base del livello}
-In questa fase si attraversa la DAG attraverso una ricerca in ampiezza (BFS), partendo quindi dal task con tempo di inizio minore (o entry-task), con l'obiettivo di raggruppare nello stesso livello task che fra loro sono indipendenti e che quindi possono essere eseguiti in parallelo.
+In questa fase si attraversa la DAG delle dipendenze tra processi attraverso una ricerca in ampiezza (BFS), partendo quindi dal task con tempo di inizio minore (o entry-task), con l'obiettivo di raggruppare nello stesso livello task che fra loro sono indipendenti e che quindi possono essere eseguiti in parallelo.
 In particolare, per ogni task il livello ad esso associato è dato dal livello massimo dei suoi predecessori (nodi della DAG da cui il task dipende) incrementato di uno. I task che non hanno predecessori sono detti entry-task o entrypoint e sono assegnati al livello 0.
 
 
@@ -31,8 +31,7 @@ Quindi, per ogni livello, i task con grado più alto ricevono priorità maggiore
 
 
 \section{Selezione del processore}
-A questo punto si scandiscono i task sulla base della loro priorità e, ogni task, viene associato al processore migliore, cioè quello che fornisce $EFT$ (Earliest Finish Time) minore. 
-Dove $EFT$ è definito come segue:
+A questo punto si scandiscono i task sulla base della loro priorità e, ogni task, viene associato al processore migliore, cioè quello che fornisce $EFT$ (Earliest Finish Time) minore, dove $EFT$ è definito come segue:
 \begin{displaymath}
 	avail[j] := \text{prossimo istante in cui il processore $j$ è libero.}
 \end{displaymath}

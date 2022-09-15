@@ -92,12 +92,12 @@ I kernel sono stati eseguiti sia su GPU che su CPU in modo da poter effettuare d
 \end{figure}
 \begin{figure}
 \includegraphics[width=\textwidth]{Images/kernel_cpu.pdf}
-\caption{Dettaglio tempi di runtime per i kernel \textit{compute\_metrics} e \textit{bitonic\_mergesort} eseguiti su GPU, in relazione al numero di task del dataset.}
+\caption{Dettaglio tempi di runtime per i kernel \textit{compute\_metrics} e \textit{bitonic\_mergesort} eseguiti su CPU, in relazione al numero di task del dataset. Grafico in scala logaritmica.}
 \label{runtimegpu}
 \end{figure}
 \begin{figure}
 \includegraphics[width=\textwidth]{Images/kernel_gpu.pdf}
-\caption{Dettaglio tempi di runtime per i kernel \textit{compute\_metrics} e \textit{bitonic\_mergesort} eseguiti su CPU, in relazione al numero di task del dataset.}
+\caption{Dettaglio tempi di runtime per i kernel \textit{compute\_metrics} e \textit{bitonic\_mergesort} eseguiti su GPU, in relazione al numero di task del dataset. Grafico in scala logaritmica.}
 \label{runtimecpu}
 \end{figure}
 \end{center}
@@ -118,9 +118,9 @@ I valori dei test ottenuti rivelano invece una ratio di circa $3.5:1$ per grandi
 
 Ne deduciamo che la GPU non è effettivamente sfruttata a pieno e che probabilmente le cause di questa mancanza sono da ricercare nella frammentazione della coda dei task da analizzare nella fase 2 e nello scambio di informazioni con l'host necessario a terminare l'iterazione dei kernel di calcolo della metrica e di ordinamento finale.
 
-Il primo di questi problemi è dovuto al fatto che la coda, nella sua implementazione attuale, contiene un valore non nullo nelle posizioni dell'array che corrispondono ai nodi da analizzare. Per ovviare a questo problema si potrebbe pensare di usare una coda effettiva invece di un array, tuttavia questo non è possibile perché i workitem dovrebbero sincronizzarsi per decidere a quale indirizzo poter inserire il nuovo nodo da aggiungere alla coda.
+Il primo di questi problemi è dovuto al fatto che la coda, nella sua implementazione attuale, contiene un valore non nullo nelle posizioni dell'array che corrispondono ai nodi da analizzare. Per ovviare a questo problema si potrebbe pensare di usare una coda effettiva invece di un array, tuttavia questo non è possibile perché i work-item dovrebbero sincronizzarsi per decidere a quale indirizzo poter inserire il nuovo nodo da aggiungere alla coda.
 
-Anche il secondo problema non è risolvibile a causa dell'impossibilità di sincronizzare workitem di workgroup diversi, per cui è necessario ritornare il controllo all'host in modo che possa verificare, attraverso una riduzione parallela, se è ancora necessario proseguire con un'altra esecuzione del kernel. 
+Anche il secondo problema non è risolvibile a causa dell'impossibilità di sincronizzare work-item di work-group diversi, per cui è necessario ritornare il controllo all'host in modo che possa verificare, attraverso una riduzione parallela, se è ancora necessario proseguire con un'altra esecuzione del kernel. 
 
 \section{Andamento delle prestazioni}
 Come si evince dalla \autoref{runtimetotal}, i tempi di runtime su GPU seguono un andamento lineare per piccoli dataset, questo perché il potenziale della GPU non viene sfruttato appieno e, di conseguenza, è più prestante la CPU.

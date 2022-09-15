@@ -2,19 +2,19 @@
 \vspace{4cm}
 OpenCL\cite{opencl} è uno standard open per lo sviluppo di programmi multi piattaforma eseguiti in parallelo che implementa un linguaggio, derivato dal C, con il quale è possibile scrivere delle funzioni (\textit{kernel}) che potranno essere compilate a run-time ed eseguite in parallelo sull'hardware desiderato (\textit{device}).
 
-La compilazione a run-time è necessaria per garantire la portabilità del codice su device diversi e avviene sulla piattaforma, detta \textit{host}, che inizia l'esecuzione del programma attraverso le API (Application Programming Interface) messe a disposizione da OpenCL stesso.
-In fase di compilazione il codice OpenCL viene quindi tradotto in istruzioni native del device di destinazione attraverso un compilatore, rilasciato dalla casa di produzione dell'hardware, in grado di generare codice performante sul device a partire dal kernel fornito.
+La compilazione a run-time è necessaria per garantire la portabilità del codice su device diversi e avviene sulla piattaforma, detta \textit{host}, che inizia l'esecuzione del programma attraverso le API (Application Programming Interface) messe a disposizione dalla libreria OpenCL.
+In fase di compilazione il codice OpenCL viene quindi tradotto in istruzioni native del device di destinazione attraverso un compilatore in grado di generare codice performante sul device a partire dal kernel fornito.
 
-Questo approccio è comunemente detto \textit{separate source} proprio perché mantiene separato il codice host da quello device, permettendo di gestire il primo attraverso qualsiasi linguaggio purché questo sia supportato da OpenCL o dalla community.
+Questo approccio è comunemente detto \textit{separate source} proprio perché mantiene separato il codice host da quello device, permettendo di gestire il primo attraverso qualsiasi linguaggio che si possa interfacciare con la libreria OpenCL.
 
 \section{Esecuzione di un programma OpenCL}
 OpenCL fa uso di una coda dei comandi che permette all'host di inviare kernel e relativi dati al device per essere eseguiti.
 
 Dopo essere stati aggiunti alla coda, i kernel vengono assegnati alle varie compute unit del device, unità di elaborazione che eseguono lo stesso codice in parallelo secondo il paradigma di programmazione \textit{stream processing}. I dati di input dei kernel vengono quindi gestiti come un flusso di informazioni su cui, per ogni elemento, è necessario eseguire una sequenza di operazioni.
  
-La separazione e l'implementazione fisica dei compute unit dipendono dal device scelto, di conseguenza OpenCL offre delle API comuni che permettono di eseguire le operazioni presenti sulla maggior parte dell'hardware. Questo impedisce di ottimizzare il codice a basso livello ma permette un risparmio di tempo notevole in fase di sviluppo se si vuole eseguire il codice su più device.
+La separazione e l'implementazione fisica dei compute unit dipendono dal device scelto, di conseguenza OpenCL offre delle API comuni che permettono di eseguire le operazioni presenti sulla maggior parte dell'hardware. Questo impedisce di ottimizzare il codice a basso livello, ma permette un risparmio di tempo notevole in fase di sviluppo se si vuole eseguire il codice su più device.
 
-In particolare, OpenCL definisce un global work size e un local work size.
+Per gestire l'esecuzione parallela dei kernel, OpenCL definisce un global work size e un local work size.
 
 Il global work size indica il numero di istanze del kernel da eseguire, ogni istanza è detta work-item.
 
@@ -33,9 +33,9 @@ Per fare questo fornisce un'astrazione con tre classi di memoria:
 	\item Private memory
 \end{itemize}
 
-La global memory è accessibile a tutti i work-item di tutti i work-group ma ha un tempo di risposta più alto delle altre.
+La global memory è accessibile a tutti i work-item di tutti i work-group, ma ha un tempo di risposta più alto delle altre.
 
-La local memory è la memoria locale di un work-group ed è quindi accessibile solo a work-item dello stesso work-group.
+La local memory è la memoria locale di un work-group ed è quindi accessibile solo a work-item dello stesso work-group. Spesso è implementata su risorse specifiche delle compute unit ed ha quindi latenza e banda passante molto migliori di quella globale.
 
 Infine la private memory è limitata al singolo work-item.
 
